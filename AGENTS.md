@@ -64,3 +64,43 @@ packages/
 - This project uses claude-mem for persistent memory across sessions
 - Previous session context is automatically available via MCP search tools
 - Web UI: http://localhost:37777 (when claude-mem worker is active)
+
+## MCP Integration
+
+The following MCP servers are configured in `opencode.json`. Each agent should use the MCPs relevant to their domain.
+
+### Available MCP Servers
+
+| Server | Type | Purpose |
+| :--- | :--- | :--- |
+| `serena` | local (uvx) | Semantic code analysis — symbol search, find references, LSP tools |
+| `tavily` | local (mcp-remote) | Real-time web search for research and troubleshooting |
+| `mobile-mcp` | local (npx) | Mobile automation — interact with Android/iOS devices and emulators |
+| `exa` | remote | Web and code search — GitHub examples, documentation, StackOverflow |
+| `chrome-devtools` | local (npx) | Browser DevTools — debugging, performance profiling, network inspection |
+
+> **TanStack libraries** (Query, Router, Table, Form): Use the Context7 MCP (bundled with oh-my-opencode) to query up-to-date TanStack documentation.
+
+### Agent → MCP Mapping
+
+| Agent | Primary MCPs | Why |
+| :--- | :--- | :--- |
+| `dv-backend-dev` | `serena`, `tavily`, `exa` | Code analysis across large codebases; research NestJS patterns |
+| `dv-frontend-dev` | `serena`, `chrome-devtools`, `exa` | Symbol navigation; debug Next.js in browser; find React patterns |
+| `dv-mobile-dev` | `mobile-mcp`, `serena`, `exa` | Automate Android device interactions; Expo/RN code analysis |
+| `dv-db-architect` | `serena`, `exa` | Analyze existing schema; research SQL and Prisma patterns |
+| `dv-test-engineer` | `serena`, `exa`, `chrome-devtools` | Navigate test files; find testing patterns; Playwright debugging |
+| `dv-code-reviewer` | `serena` | Read-only symbol search and reference analysis |
+| `dv-devops-engineer` | `tavily`, `exa` | Research Docker/CI patterns and best practices |
+| `dv-docs-writer` | `exa`, `tavily` | Find documentation examples and current best practices |
+
+### Prerequisites
+
+- **Serena**: Requires `uv` — install from https://docs.astral.sh/uv/
+- **Mobile Next**: Requires Android SDK (Android Studio) — already installed
+- **Chrome DevTools**: Requires Chrome browser installed
+- **Tavily**: Set `TAVILY_API_KEY` in environment (see `.env.example`)
+- **Exa**: Set `EXA_API_KEY` in environment for higher rate limits (see `.env.example`)
+
+See `docs/MCP_SETUP.md` for detailed setup and troubleshooting.
+

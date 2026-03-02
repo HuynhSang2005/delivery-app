@@ -41,6 +41,17 @@ Set `CONTEXT7_API_KEY` following `docs/CONTEXT7_SETUP.md`.
 ## claude-mem
 Persistent memory across sessions. Web UI at http://localhost:37777
 
+## MCP Servers
+Five MCP servers configured in `opencode.json`. See `docs/MCP_SETUP.md` for setup instructions.
+
+| Server | Type | Purpose |
+| :--- | :--- | :--- |
+| `serena` | local | Code analysis, symbol search (requires `uv`) |
+| `tavily` | local | Real-time web search (requires `TAVILY_API_KEY`) |
+| `mobile-mcp` | local | Android/iOS automation (requires Android SDK) |
+| `exa` | remote | Web and code search |
+| `chrome-devtools` | local | Browser debugging |
+
 ## Quick Start
 1. Copy `.env.example` to `.env`
 2. Set `CONTEXT7_API_KEY` in `.env`
