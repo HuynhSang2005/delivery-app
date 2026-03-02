@@ -38,24 +38,15 @@
     },
     "tavily": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "mcp-remote",
-        "https://mcp.tavily.com/mcp"
-      ],
-      "env": {
-        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
+      "command": ["npx", "-y", "mcp-remote", "https://mcp.tavily.com/mcp"],
+      "environment": {
+        "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
       },
       "enabled": true
     },
     "mobile-mcp": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@mobilenext/mobile-mcp@latest"
-      ],
+      "command": ["bunx", "-y", "@mobilenext/mobile-mcp@latest"],
       "enabled": true
     },
     "exa": {
@@ -65,20 +56,12 @@
     },
     "chrome-devtools": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "chrome-devtools-mcp@latest"
-      ],
+      "command": ["bunx", "-y", "chrome-devtools-mcp@latest"],
       "enabled": true
     },
     "tanstack": {
       "type": "local",
-      "command": [
-        "npx",
-        "@tanstack/cli",
-        "mcp"
-      ],
+      "command": ["bunx", "@tanstack/cli", "mcp"],
       "enabled": true
     }
   }
