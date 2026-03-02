@@ -78,15 +78,16 @@ The following MCP servers are configured in `opencode.json`. Each agent should u
 | `mobile-mcp` | local (npx) | Mobile automation — interact with Android/iOS devices and emulators |
 | `exa` | remote | Web and code search — GitHub examples, documentation, StackOverflow |
 | `chrome-devtools` | local (npx) | Browser DevTools — debugging, performance profiling, network inspection |
+| `tanstack` | local (npx) | TanStack library docs — Query, Router, Table, Form via dedicated MCP |
 
-> **TanStack libraries** (Query, Router, Table, Form): Use the Context7 MCP (bundled with oh-my-opencode) to query up-to-date TanStack documentation.
+> **TanStack libraries** (Query, Router, Table, Form): Use the `tanstack` MCP for official TanStack library documentation. Context7 MCP (bundled with oh-my-opencode) also provides TanStack docs as a fallback.
 
 ### Agent → MCP Mapping
 
 | Agent | Primary MCPs | Why |
 | :--- | :--- | :--- |
 | `dv-backend-dev` | `serena`, `tavily`, `exa` | Code analysis across large codebases; research NestJS patterns |
-| `dv-frontend-dev` | `serena`, `chrome-devtools`, `exa` | Symbol navigation; debug Next.js in browser; find React patterns |
+| `dv-frontend-dev` | `serena`, `chrome-devtools`, `exa`, `tanstack` | Symbol navigation; debug Next.js in browser; find React patterns; TanStack library docs |
 | `dv-mobile-dev` | `mobile-mcp`, `serena`, `exa` | Automate Android device interactions; Expo/RN code analysis |
 | `dv-db-architect` | `serena`, `exa` | Analyze existing schema; research SQL and Prisma patterns |
 | `dv-test-engineer` | `serena`, `exa`, `chrome-devtools` | Navigate test files; find testing patterns; Playwright debugging |

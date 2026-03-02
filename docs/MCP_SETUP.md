@@ -1,6 +1,6 @@
 # MCP Setup Guide — delivery-app
 
-Five MCP servers are configured for this project. Each gives AI agents specialized capabilities beyond basic file editing.
+Six MCP servers are configured for this project. Each gives AI agents specialized capabilities beyond basic file editing.
 
 ## MCP Servers
 | Server | Type | Purpose |
@@ -10,8 +10,9 @@ Five MCP servers are configured for this project. Each gives AI agents specializ
 | `mobile-mcp` | local | Mobile automation — interact with Android/iOS devices and emulators |
 | `exa` | remote | Web and code search — GitHub examples, official docs, Stack Overflow |
 | `chrome-devtools` | local | Browser DevTools — debug Next.js, profile performance, inspect network |
+| `tanstack` | local | TanStack library docs — Query, Router, Table, Form |
 
-> **TanStack** (Query, Router, Table, Form): Documentation is served by Context7, bundled with oh-my-opencode. No separate MCP needed.
+> **TanStack** MCP provides official Query, Router, Table, and Form documentation. Context7 also covers TanStack as a secondary source.
 ---
 ## Prerequisites
 ### Required for all MCPs
