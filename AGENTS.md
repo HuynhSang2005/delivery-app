@@ -2,9 +2,9 @@
 
 ## Project Overview
 Full-stack delivery application:
-- **Web**: Next.js 14+ (App Router) — `apps/web/`
+- **Web**: Next.js 16+ (App Router) — `apps/web/`
 - **Mobile**: React Native with Expo SDK — `apps/mobile/`
-- **API**: NestJS 10+ — `apps/api/`
+- **API**: NestJS 11+ — `apps/api/`
 - **Shared**: Types and utilities — `packages/shared/`, `packages/ui/`
 
 ## TypeScript
@@ -60,14 +60,6 @@ packages/
 - Conventional commits: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
 - No hardcoded secrets or credentials in any file
 
-## Memory & Context
-- This project uses claude-mem for persistent memory across sessions
-- Previous session context is automatically available via MCP search tools
-- Web UI: http://localhost:37777 (when claude-mem worker is active)
-
-## MCP Integration
-
-The following MCP servers are configured in `opencode.json`. Each agent should use the MCPs relevant to their domain.
 
 ### Available MCP Servers
 
@@ -94,14 +86,4 @@ The following MCP servers are configured in `opencode.json`. Each agent should u
 | `dv-code-reviewer` | `serena` | Read-only symbol search and reference analysis |
 | `dv-devops-engineer` | `tavily`, `exa` | Research Docker/CI patterns and best practices |
 | `dv-docs-writer` | `exa`, `tavily` | Find documentation examples and current best practices |
-
-### Prerequisites
-
-- **Serena**: Requires `uv` — install from https://docs.astral.sh/uv/
-- **Mobile Next**: Requires Android SDK (Android Studio) — already installed
-- **Chrome DevTools**: Requires Chrome browser installed
-- **Tavily**: Set `TAVILY_API_KEY` in environment (see `.env.example`)
-- **Exa**: Set `EXA_API_KEY` in environment for higher rate limits (see `.env.example`)
-
-See `docs/MCP_SETUP.md` for detailed setup and troubleshooting.
 
