@@ -1,0 +1,24 @@
+# Project-scope Codex configuration.
+# Keep this file lean: stable tooling defaults live here,
+# while model choice can stay flexible per session/UI.
+
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+file_opener = "vscode"
+
+[sandbox_workspace_write]
+network_access = false
+
+[mcp_servers.serena]
+command = "uvx"
+args = [
+  "--from",
+  "git+https://github.com/oraios/serena",
+  "serena",
+  "start-mcp-server",
+  "--context",
+  "codex",
+]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+required = false
