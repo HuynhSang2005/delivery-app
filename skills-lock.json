@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "agent-md-refactor": {
+      "source": "kilo-org/kilo-marketplace",
+      "sourceType": "github",
+      "computedHash": "128bf9ec63021f95a2c0500294241a590a8d3e855037219bae5507c8a162ae60"
+    },
     "android-e2e-testing": {
       "source": "expo/expo",
       "sourceType": "github",
@@ -66,6 +71,11 @@
       "sourceType": "github",
       "computedHash": "16c53e80cacd65369acfd8a4f5cf06a60083cc6d980127b4b2e384b81ce0e547"
     },
+    "mermaid-diagram-specialist": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "computedHash": "4fd9576e76e89e17d72891fb63e11741bf34c72390058baeb42812e396698525"
+    },
     "native-data-fetching": {
       "source": "expo/skills",
       "sourceType": "github",
@@ -85,6 +95,11 @@
       "source": "postgis/postgis",
       "sourceType": "github",
       "computedHash": "3fb37673427dd45b8c59d43bc298dea6706798e588974bb147cd3b55e5d4a108"
+    },
+    "pretty-mermaid": {
+      "source": "imxv/pretty-mermaid-skills",
+      "sourceType": "github",
+      "computedHash": "8fbeb58625ef4f3d50338ca5c77f62b51e75606acb524cb44a7b1d596277fc41"
     },
     "prisma-client-api": {
       "source": "prisma/skills",
