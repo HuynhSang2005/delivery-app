@@ -1,84 +1,76 @@
-# Agent Instructions
+# AGENTS.md
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+## Phạm Vi Project
 
-## Quick Reference
+Repository này là monorepo Nx cho một delivery product gồm:
+- `apps/api`: backend NestJS
+- `apps/admin-web`: admin dashboard dùng Next.js
+- `apps/mobile`: mobile app dùng Expo
 
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work atomically
-bd close <id>         # Complete work
-bd dolt push          # Push beads data to remote
-```
+Nguồn planning chính nằm trong `docs/`.
 
-## Non-Interactive Shell Commands
+Nguyên tắc áp dụng: `AGENTS.md` nào gần nhất thì ưu tiên file đó. Rule riêng cho backend nằm ở `apps/api/AGENTS.md`.
 
-**ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
+## Source Of Truth
 
-Shell commands like `cp`, `mv`, and `rm` may be aliased to include `-i` (interactive) mode on some systems, causing the agent to hang indefinitely waiting for y/n input.
+Trước khi code, phải đọc các docs liên quan trong `docs/`.
 
-**Use these forms instead:**
-```bash
-# Force overwrite without prompting
-cp -f source dest           # NOT: cp source dest
-mv -f source dest           # NOT: mv source dest
-rm -f file                  # NOT: rm file
+Baseline tối thiểu:
+- `docs/README.md`
+- `docs/01-product-requirements.md`
+- `docs/04-backend-architecture.md`
+- `docs/08-api-realtime-contracts.md`
+- `docs/10-testing-roadmap-risk.md`
+- `docs/11-adrs.md`
+- `docs/12-folder-structure.md`
 
-# For recursive operations
-rm -rf directory            # NOT: rm -r directory
-cp -rf source dest          # NOT: cp -r source dest
-```
+Nguồn thực thi riêng cho backend:
+- `docs/plan/be/README.md`
+- phase file backend đang active
 
-**Other commands that may prompt:**
-- `scp` - use `-o BatchMode=yes` for non-interactive
-- `ssh` - use `-o BatchMode=yes` to fail instead of prompting
-- `apt-get` - use `-y` flag
-- `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
+## Quy Tắc Monorepo
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
-## Beads Issue Tracker
+- Dùng terminology và target naming nhất quán theo Nx.
+- Khi có thể, ưu tiên command theo project hoặc `affected` thay vì chạy cả repo.
+- Giữ scope thay đổi nhỏ nhất có thể.
+- Không đưa giả định của Turborepo vào repo này.
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+## Planning Và Execution
 
-### Quick Reference
+- Công việc nên bắt đầu từ task đã map rõ, không bắt đầu từ yêu cầu mơ hồ.
+- Với backend work, dùng `docs/plan/be` làm execution system.
+- Tôn trọng dependency và phase order.
+- Một task phải tạo ra một output rõ và test được.
+- Nếu implement làm lộ ra mismatch trong docs, sửa docs trước khi mở rộng code scope.
 
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
+## Workflow Với Beads
 
-### Rules
+Dùng Beads để track công việc bền vững khi làm theo execution system.
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+Flow khuyến nghị:
+1. xem ready work
+2. claim đúng một task
+3. chỉ implement task đó
+4. ghi evidence
+5. close task hoặc tạo follow-up dependency
 
-## Session Completion
+Không giấu discovered work trong TODO rời rạc nếu nó nên là task thật.
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+## Quality Bar
 
-**MANDATORY WORKFLOW:**
+- Không claim complete nếu chưa có verification evidence.
+- Có thay đổi behavior thì phải cập nhật test tương ứng.
+- Giữ contract nhất quán giữa API, data model, và architecture docs.
+- Realtime chỉ hỗ trợ UX; persisted backend state vẫn là nguồn sự thật cuối cùng.
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd dolt push
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+## Quy Tắc Chỉnh Sửa
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-<!-- END BEADS INTEGRATION -->
+- Giữ docs và implementation luôn khớp nhau.
+- Không âm thầm đổi business invariants.
+- Ưu tiên patch nhỏ thay vì rewrite rộng, trừ khi task nói rõ phải rewrite.
+- Không revert các thay đổi không liên quan của user.
+
+## Hướng Dẫn Theo Subproject
+
+- Nếu làm backend, phải đọc thêm `apps/api/AGENTS.md`.
+- Nếu có `AGENTS.md` sâu hơn trong một subproject, file sâu hơn sẽ thắng.
