@@ -1,87 +1,84 @@
 # AGENTS.md
 
-## Phạm Vi
+## Vai Trò
 
-File này áp dụng cho mọi công việc bên trong `apps/api`.
+File này là backend contract cho mọi công việc trong `apps/api`.
 
-Dùng nó cùng với:
+Nếu file này mâu thuẫn với root `AGENTS.md`, ưu tiên file này cho phạm vi backend. Nếu file này mâu thuẫn với docs gốc, ưu tiên docs gốc rồi cập nhật lại file này.
+
+## Source Of Truth Cho Backend
+
+Đọc tối thiểu trước khi sửa backend:
 - `docs/04-backend-architecture.md`
 - `docs/07-data-model.md`
 - `docs/08-api-realtime-contracts.md`
 - `docs/10-testing-roadmap-risk.md`
 - `docs/11-adrs.md`
-- `docs/plan/be/*`
+- `docs/12-folder-structure.md`
+- `docs/14-tech-stack-catalog.md`
 
-## Quy Tắc Kiến Trúc
+Nếu task thuộc execution plan:
+- đọc `docs/plan/foudation/` trước nếu task còn chạm workspace, infra, contracts baseline, hoặc verification baseline
+- đọc `docs/plan/be/README.md` và phase file tương ứng trước khi implement
 
-Backend code nên bám theo các layer sau:
-- `presentation`
-- `application`
-- `domain`
-- `infrastructure`
+## Trạng Thái Hiện Tại
 
-Không nhét business logic vào controller, gateway, hoặc Prisma calls.
+- `apps/api` hiện có thể vẫn là Nest starter scaffold
+- package manager hiện tại là `bun`
+- không được phát triển sâu theo scaffold nếu nó đi ngược docs hoặc execution plan
 
-## Bounded Contexts
+## Kiến Trúc Bắt Buộc
 
-Các module backend chính:
+- backend đi theo `NestJS modular monolith`
+- giữ boundary rõ giữa `presentation`, `application`, `domain`, `infrastructure`
+- không nhét business logic vào controller, gateway, guard kỹ thuật, hoặc Prisma query rải rác
+
+Core backend contexts phải bám docs:
 - `auth`
-- `drivers`
-- `pricing`
+- `quotes`
 - `orders`
 - `dispatch`
-- `realtime`
 - `admin`
 - `onboarding`
 - `chat`
-- shared infrastructure và shared kernel
+- identity hoặc capability concerns liên quan accounts hoặc drivers
 
-Giữ boundary minh định. Việc gọi qua lại giữa các context nên đi qua application services hoặc shared abstractions rõ ràng, không import ad hoc.
+`realtime` là transport và UX support path, không phải business source of truth riêng.
 
-## Auth Và Identity
+## Invariants Cứng
 
-- Backend-owned session là canonical.
-- Firebase OTP-SMS, nếu có implement, chỉ là proofing input.
-- Capability-based access là bắt buộc; không quay lại mô hình single-role đơn giản.
-- `/auth/me` phải phản ánh đúng persisted backend session truth.
+- auth source là `backend-owned session`
+- `/auth/me` là identity truth cho client
+- `dev login` là baseline hợp lệ cho `MVP-1`
+- Firebase phone flow, nếu có sau này, chỉ là proofing rồi exchange sang backend session
+- quote phải dựa trên pricing policy có version
+- order phải snapshot pricing và hỗ trợ idempotency khi tạo
+- dispatch là offer-based, baseline candidate selection là `radius + freshness + KNN`
+- concurrent accept phải resolve tất định và có audit trail
+- realtime là assistive; HTTP và persisted state mới là authoritative
+- `PostgreSQL + PostGIS` là source of truth
+- `Prisma` là persistence path mặc định; raw SQL chỉ dùng khi có lý do rõ cho geospatial, read model, hoặc performance path
 
-## Data Và Persistence
+## Verification
 
-- Prisma là đường persistence mặc định.
-- Các giả định về Prisma v7 driver-adapter phải luôn tương thích với docs hiện tại.
-- Raw SQL chỉ chấp nhận khi có lý do rõ ràng cho geo queries, read models, hoặc đường performance-sensitive.
-- Historical truth phải snapshot-safe cho pricing, orders, và audits.
+Current-state commands của app:
+- `bun run lint`
+- `bun run build`
+- `bun run test`
+- `bun run test:e2e`
 
-## Dispatch Và Realtime
+Quy tắc:
+- thay đổi BE không tầm thường phải chạy `lint`, `build`, `test`
+- chạy `test:e2e` nếu thay đổi ảnh hưởng API flow, bootstrap app, auth, hoặc lifecycle chính
+- nếu thay đổi contract, DTO, status transition, auth, pricing, dispatch, hoặc realtime thì phải đối chiếu docs trước khi kết luận done
+- luôn ghi rõ đang verify theo current-state hay target-state
 
-- Dispatch baseline là `radius + freshness + KNN`, không phải route-optimized shortest-path dispatch.
-- Dispatch attempts và outcomes phải được persist; không giữ assignment logic quan trọng chỉ trong memory.
-- Realtime chỉ hỗ trợ UX. HTTP reads và persisted state mới là authoritative.
-- Giả định về background location phải khớp mobile policy đã chốt trong docs.
+## Không Được Làm
 
-## Testing
-
-Với backend task không tầm thường, cần cân nhắc:
-- unit tests cho policy hoặc domain logic thuần
-- integration tests cho persistence và transactions
-- API tests cho contracts, auth, và permissions
-- gateway tests cho realtime behavior
-- spatial fixture tests cho geo candidate selection
-
-Một task chưa thể coi là done nếu đã đổi behavior mà chưa cập nhật verification coverage hoặc chưa tạo tracked follow-up task.
-
-## Execution System
-
-Khi implement backend work:
-1. đọc phase file tương ứng trong `docs/plan/be`
-2. xác nhận dependencies đã thỏa
-3. map sang Beads task tương ứng
-4. giữ file edits trong đúng task scope
-5. chạy verification đã liệt kê trước khi claim complete
-
-## Guardrails
-
-- Không tự mở rộng scope âm thầm.
-- Không đưa giả định paid service vào baseline nếu docs chưa chốt.
-- Không biến websocket events thành nguồn sự thật duy nhất.
-- Không đổi lifecycle enums hoặc invariants nếu chưa update docs và tests.
+- không coi Firebase session là canonical app session
+- không đơn giản hóa capability model thành single-role shortcut
+- không để client tự suy diễn quyền hoặc final state mà thiếu backend confirmation
+- không biến realtime thành shortcut bỏ qua persistence
+- không đổi enum, lifecycle, hoặc contract mà không cập nhật docs
+- không kéo worker extraction sớm khi phase chưa yêu cầu
+- không sinh `package-lock.json` hoặc workflow `npm`

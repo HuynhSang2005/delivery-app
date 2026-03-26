@@ -1,76 +1,82 @@
 # AGENTS.md
 
-## Phạm Vi Project
+## Vai Trò
 
-Repository này là monorepo Nx cho một delivery product gồm:
-- `apps/api`: backend NestJS
-- `apps/admin-web`: admin dashboard dùng Next.js
-- `apps/mobile`: mobile app dùng Expo
+File này là repo-level contract cho mọi coding agent làm việc trong `delivery-app`.
 
-Nguồn planning chính nằm trong `docs/`.
+Nguyên tắc precedence:
+- file `AGENTS.md` gần file đang sửa hơn sẽ thắng cho phạm vi đó
+- nếu `AGENTS.md` mâu thuẫn với docs gốc, ưu tiên docs gốc rồi cập nhật lại `AGENTS.md`
 
-Nguyên tắc áp dụng: `AGENTS.md` nào gần nhất thì ưu tiên file đó. Rule riêng cho backend nằm ở `apps/api/AGENTS.md`.
+## Snapshot Repo
+
+- đây là docs-driven delivery product portfolio, không phải demo UI
+- target architecture đã chốt: `Nx` monorepo, `NestJS` backend, `Next.js` admin web, `Expo` mobile, `PostgreSQL + PostGIS`
+- current code có thể vẫn là starter scaffold; không được suy diễn kiến trúc cuối cùng chỉ từ code hiện có
+- package manager chuẩn là `bun`; không quay lại `npm`
 
 ## Source Of Truth
 
-Trước khi code, phải đọc các docs liên quan trong `docs/`.
-
-Baseline tối thiểu:
+Trước khi làm việc đáng kể, đọc tối thiểu:
 - `docs/README.md`
 - `docs/01-product-requirements.md`
-- `docs/04-backend-architecture.md`
-- `docs/08-api-realtime-contracts.md`
+- `docs/02-solution-overview.md`
+- `docs/03-system-architecture.md`
+- `docs/09-devops-runbook.md`
 - `docs/10-testing-roadmap-risk.md`
 - `docs/11-adrs.md`
 - `docs/12-folder-structure.md`
+- `docs/14-tech-stack-catalog.md`
 
-Nguồn thực thi riêng cho backend:
-- `docs/plan/be/README.md`
-- phase file backend đang active
+Nếu task chạm product rules, API, data model, auth, dispatch, realtime, hoặc self-hosting thì đọc thêm docs chuyên biệt tương ứng trong `docs/`.
 
-## Quy Tắc Monorepo
+## Thứ Tự Execution
 
-- Dùng terminology và target naming nhất quán theo Nx.
-- Khi có thể, ưu tiên command theo project hoặc `affected` thay vì chạy cả repo.
-- Giữ scope thay đổi nhỏ nhất có thể.
-- Không đưa giả định của Turborepo vào repo này.
+1. Nếu task chạm workspace, local infra, CI, shared boundaries, `infra/`, hoặc `tools/`, đọc `docs/plan/foudation/` trước.
+2. Chỉ bắt đầu app-specific execution sau khi foundation assumptions đã thỏa.
+3. Backend work phải bám `docs/plan/be/` và đọc thêm `apps/api/AGENTS.md`.
+4. Nếu code scaffold và docs đã chốt mâu thuẫn nhau, tin docs trước và sửa plan hoặc docs trước khi mở rộng implementation.
 
-## Planning Và Execution
+## Invariants Cấp Repo
 
-- Công việc nên bắt đầu từ task đã map rõ, không bắt đầu từ yêu cầu mơ hồ.
-- Với backend work, dùng `docs/plan/be` làm execution system.
-- Tôn trọng dependency và phase order.
-- Một task phải tạo ra một output rõ và test được.
-- Nếu implement làm lộ ra mismatch trong docs, sửa docs trước khi mở rộng code scope.
+- delivery path là `MVP-1 -> MVP-2 -> MVP-3`
+- `MVP-1` ưu tiên core delivery flow, không kéo feature phụ vào baseline
+- auth baseline là `backend-owned session`
+- `dev login` là baseline hợp lệ cho `MVP-1`
+- Firebase OTP-SMS, nếu có, chỉ là identity proofing chứ không phải auth source
+- dispatch baseline là `radius + freshness + KNN`
+- realtime là `HTTP-authoritative realtime`
+- onboarding đi trước chat
+- worker riêng là phase sau, không phải prerequisite của `MVP-1`
+- local-first là baseline; không mặc định kéo paid infra
 
-## Workflow Với Beads
+## Verification
 
-Dùng Beads để track công việc bền vững khi làm theo execution system.
+- luôn ghi rõ đang verify theo `current-state` hay `target-state`
+- current-state hiện chưa có root-level `nx` executable baseline hoàn chỉnh
+- app-level commands hiện có:
+  - `apps/api`: `bun run build`, `bun run start:dev`, `bun run lint`, `bun run test`, `bun run test:e2e`
+  - `apps/admin-web`: `bun run dev`, `bun run build`, `bun run lint`
+  - `apps/mobile`: `bun run start`, `bun run lint`
+- target-state repo verification sau foundation là `nx affected -t lint typecheck test build` và `nx affected -t e2e` khi thay đổi chạm flow quan trọng
 
-Flow khuyến nghị:
-1. xem ready work
-2. claim đúng một task
-3. chỉ implement task đó
-4. ghi evidence
-5. close task hoặc tạo follow-up dependency
+Không claim complete nếu chưa có verification evidence hoặc chưa nêu rõ vì sao task là docs-only.
 
-Không giấu discovered work trong TODO rời rạc nếu nó nên là task thật.
+## Đọc Sâu Hơn Ở Đâu
 
-## Quality Bar
+- `docs/AGENTS.md` cho docs gốc, roadmap, ADR
+- `docs/plan/AGENTS.md` cho execution plans
+- `apps/api/AGENTS.md` cho backend
+- `apps/mobile/AGENTS.md` cho mobile
+- `apps/admin-web/AGENTS.md` cho admin web
+- `infra/AGENTS.md` cho topology, deploy, proxy, compose, scripts vận hành
+- `tools/AGENTS.md` cho generators, codegen, conformance helpers
 
-- Không claim complete nếu chưa có verification evidence.
-- Có thay đổi behavior thì phải cập nhật test tương ứng.
-- Giữ contract nhất quán giữa API, data model, và architecture docs.
-- Realtime chỉ hỗ trợ UX; persisted backend state vẫn là nguồn sự thật cuối cùng.
+## Không Được Làm
 
-## Quy Tắc Chỉnh Sửa
-
-- Giữ docs và implementation luôn khớp nhau.
-- Không âm thầm đổi business invariants.
-- Ưu tiên patch nhỏ thay vì rewrite rộng, trừ khi task nói rõ phải rewrite.
-- Không revert các thay đổi không liên quan của user.
-
-## Hướng Dẫn Theo Subproject
-
-- Nếu làm backend, phải đọc thêm `apps/api/AGENTS.md`.
-- Nếu có `AGENTS.md` sâu hơn trong một subproject, file sâu hơn sẽ thắng.
+- không coi code scaffold hiện tại là kiến trúc cuối cùng
+- không dùng websocket event như source of truth duy nhất
+- không thêm paid service vào baseline nếu docs chưa chốt
+- không đổi business rule hoặc invariant mà không cập nhật docs
+- không tạo `package-lock.json` hoặc chuyển workflow sang `npm`
+- không revert thay đổi của người dùng nếu không được yêu cầu
