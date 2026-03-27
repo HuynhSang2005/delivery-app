@@ -1,0 +1,5 @@
+- Completed full docs audit for docs/, docs/plan/be, docs/plan/foudation.
+- Key structural issue: folder name uses typo `foudation` across docs; high risk for tooling/link consistency.
+- Planning docs often use qualitative acceptance/verification wording; recommend measurable checklists per task.
+- Current-state app command matrix in docs matches existing app package scripts.
+- External verification confirmed: NativeWind v5 still pre-release, Socket.IO recovery not guaranteed, Prisma v7 removes prisma.config adapter/engine fields.
