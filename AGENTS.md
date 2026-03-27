@@ -135,4 +135,11 @@ Lưu ý tích hợp:
 - `bd setup codex` có thể overwrite block Beads trong AGENTS; chỉ chạy lại khi thực sự cần regenerate template.
 - Nguồn điều hành ưu tiên vẫn là docs/ADR + contract Spec-Kit/Beads ở file này.
 
+Policy an toàn dữ liệu cho solo dev:
+- Không track `.beads/` trong git code branch; dùng backup branch riêng cho Beads snapshot.
+- Baseline backup remote: `origin/beads-backup` qua lệnh `bd backup export-git --branch beads-backup --remote origin`.
+- Đầu session: chạy `bd backup fetch-git --branch beads-backup --remote origin` khi cần khôi phục state mới nhất trên máy mới.
+- Cuối session: sau khi close issue quan trọng, chạy `bd backup export-git --branch beads-backup --remote origin` để chống mất dữ liệu local.
+- Checklist chuẩn: xem `docs/plan/be/beads-solo-vscode-checklist.md`.
+
 <!-- END BEADS INTEGRATION -->
