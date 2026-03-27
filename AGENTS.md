@@ -59,6 +59,13 @@ Quy tắc anti-overlap:
 - Không chỉnh Spec/Plan artifacts trực tiếp trong issue tracking mà không cập nhật docs trước.
 - Khi conflict, source docs + ADR vẫn là điểm quyết định cuối cùng.
 
+## Spec-Kit Runtime Status (Post-Init)
+
+- Spec-Kit đã được scaffold trong repo: `.specify/` và `speckit-*` skills trong `.agents/skills/`.
+- Canonical workflow commands cho AI-agent: `speckit-constitution`, `speckit-specify`, `speckit-clarify`, `speckit-plan`, `speckit-tasks`, `speckit-analyze`, `speckit-implement`.
+- Feature artifacts hiện tại được tạo theo script trong `.specify/scripts/powershell/` và nằm dưới `specs/<feature-branch>/`.
+- Không dùng external/third-party Spec-Kit wrappers nếu chúng mâu thuẫn path hoặc flow với scaffold hiện tại.
+
 ## Invariants Cấp Repo
 
 - delivery path là `MVP-1 -> MVP-2 -> MVP-3`

@@ -88,6 +88,13 @@ Quy tắc anti-overlap:
 - Không close task trong Beads nếu docs chưa phản ánh scope thực tế.
 - Khi conflict, ưu tiên docs gốc và cập nhật lại plan/issue cho đồng bộ.
 
+## Spec-Kit Post-Init Contract
+
+- `docs/plan/**` bây giờ chạy trên scaffold Spec-Kit đã có trong repo (`.specify/`).
+- Canonical commands: `speckit-constitution`, `speckit-specify`, `speckit-clarify`, `speckit-plan`, `speckit-tasks`, `speckit-analyze`, `speckit-implement`.
+- Feature artifact path chuẩn hiện tại: `specs/<feature-branch>/spec.md`, `specs/<feature-branch>/plan.md`, `specs/<feature-branch>/tasks.md`.
+- Không dùng skill/spec wrapper ngoài bộ `speckit-*` nếu nó mô tả path hoặc phase-flow khác scaffold đang dùng.
+
 ## Metadata Mỗi Task
 
 Mỗi `mark-task` phải có:

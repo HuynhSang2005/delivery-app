@@ -48,6 +48,12 @@ Anti-overlap rule:
 - Mọi thay đổi scope/acceptance phải phản ánh ở docs trước, rồi mới cập nhật Beads graph.
 - Nếu execution tracking và source docs lệch nhau, ưu tiên source docs, sau đó repair plan + issue.
 
+## Spec-Kit Post-Init Notes
+
+- Repo đã có scaffold Spec-Kit (`.specify/`) và bộ `speckit-*` skills chính thống.
+- Khi làm docs planning, ưu tiên command set `speckit-*`; không dùng wrapper third-party đã lệch cấu trúc scaffold.
+- Artifact path thực tế sau init: `specs/<feature-branch>/spec.md`, `plan.md`, `tasks.md`.
+
 ## Verification
 
 - search lại các wording drift chính sau khi sửa
