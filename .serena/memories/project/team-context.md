@@ -1,0 +1,3 @@
+- Team model: single developer only (project currently has one developer).
+- No current need for collaboration workflow or inviting additional contributors.
+- Prefer solo-friendly execution artifacts and avoid multi-owner/team coordination assumptions unless explicitly requested.
