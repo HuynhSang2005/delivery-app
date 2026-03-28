@@ -4,7 +4,7 @@
 
 File này là contract cho mọi công việc trong `apps/admin-web`.
 
-Nếu file này mâu thuẫn với root `AGENTS.md`, ưu tiên file này cho phạm vi admin web. Nếu file này mâu thuẫn với docs gốc, ưu tiên docs gốc rồi cập nhật file này.
+File này chỉ được specialize root/domain contracts cho phạm vi admin web, không được override source docs hoặc repo invariants.
 
 ## Source Of Truth Cho Admin Web
 
@@ -33,6 +33,13 @@ Nếu task còn chạm app shell, workspace, contract generation path, hoặc re
 - không che dữ liệu backend còn thiếu bằng cách suy diễn business state ở frontend
 - nếu deploy dưới subpath `/admin`, `basePath` phải được phản ánh ở build-time
 
+## Cannot Relax
+
+- admin web là công cụ vận hành, không phải business rule source
+- backend mới là nơi enforce capability và lifecycle chính thức
+- realtime event không được xem là final truth
+- không mở mutation scope mới nếu docs chưa chốt
+
 ## Verification
 
 Current-state commands của app:
@@ -44,6 +51,8 @@ Quy tắc:
 - ít nhất chạy `bun run lint` và `bun run build` cho thay đổi không tầm thường
 - nếu thay đổi làm lệch data contracts hoặc auth assumptions, đối chiếu lại docs trước khi claim done
 - luôn ghi rõ đang verify theo current-state hay target-state
+
+Nếu task chạm foundation assumptions (contract path, shared package, CI baseline), phải xác nhận dependency đã thỏa trước khi close.
 
 ## Không Được Làm
 

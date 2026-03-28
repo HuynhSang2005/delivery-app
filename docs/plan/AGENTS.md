@@ -1,103 +1,53 @@
 # AGENTS.md
 
-## Mục Đích
+## Vai Trò
 
-File này là local contract cho mọi công việc trong `docs/plan/`.
+File này là contract cho toàn bộ execution planning trong `docs/plan/`.
 
-`docs/plan/` biến source docs thành execution system. Nó không được tự ý ghi đè docs gốc.
+`docs/plan/` là lớp chuyển source docs thành kế hoạch thực thi có thể claim/verify, không có quyền ghi đè source docs.
 
-## Phạm Vi Sprint Refactor (docs/plan only)
+## Scope Và Ownership
 
-Sprint refactor hiện tại chỉ xử lý trong phạm vi `docs/plan/**`.
+- `docs/plan/foudation/`:
+	- setup nền dùng chung cho repo (workspace, infra contract, env/tooling baseline, verification baseline).
+- `docs/plan/be/`:
+	- backend execution sau khi dependency từ foundation đã sẵn sàng.
 
-Bao gồm:
-- chuẩn hóa wording cho execution system
-- chốt naming strategy của Foundation Plan
-- tăng tính kiểm chứng được cho metadata và quality gates
+Rule cứng:
+- blocker thuộc workspace/infra/contracts dùng chung -> đưa về foundation.
+- blocker thuộc API/domain/backend runtime -> xử lý trong backend plan.
 
-Không bao gồm:
-- chỉnh code runtime trong `apps/*`
-- chỉnh infra artifacts trong `infra/*`
-- xử lý các thay đổi ngoài `docs/plan/**`
+## Naming Strategy
 
-## Success Criteria Cấp Sprint
+- terminology chuẩn là `Foundation Plan`.
+- path vật lý hiện tại vẫn là `docs/plan/foudation/` (typo lịch sử).
+- chỉ rename thư mục khi có migration scope riêng và update đồng bộ toàn repo.
 
-Một đợt refactor trong `docs/plan/**` được coi là đạt khi:
-- mọi thay đổi nằm trong phạm vi `docs/plan/**`
-- không đổi stable IDs (`mark-phase`, `mark-task`, `mark-check`) nếu không có lý do bắt buộc
-- terminology và cross-reference trong plan nhất quán với source docs
-- mỗi task vẫn giữ đủ metadata bắt buộc và không tạo scope mơ hồ
+## Hybrid Contract: Spec-Kit + Beads
 
-## Naming Strategy Cho Foundation Plan
-
-Terminology chuẩn trong plan docs là `Foundation Plan`.
-
-Quy ước chuyển tiếp cho path:
-- path hiện tại trong repo vẫn là `docs/plan/foudation/`
-- trong nội dung docs, khi nhắc rõ path thì ghi theo dạng: `Foundation Plan (path hiện tại: docs/plan/foudation/)`
-- việc rename vật lý thư mục sang `foundation` là một migration riêng, chỉ thực hiện khi có scope cập nhật đồng bộ toàn repo
-
-## Nguyên Tắc Cứng
-
-- source docs gốc luôn thắng plan files
-- foundation plan phải đi trước app-specific plans
-- một task phải có đúng một output có thể verify
-- dependency phải explicit, không để implicit
-- phase, task, và check IDs là stable IDs; không đổi nếu không có lý do rất rõ
-
-## Khi Sửa Plan
-
-Phân biệt rõ:
-- `Foundation Plan (path hiện tại: docs/plan/foudation/)` lo shared setup baseline của toàn repo
-- `docs/plan/be/` lo backend execution sau foundation
+Vai trò tách lớp:
+- Spec-Kit:
+	- định nghĩa planning artifacts (`constitution/spec/plan/tasks`).
+	- dùng cho task decomposition, acceptance criteria, dependency narrative.
+- Beads:
+	- tracking issue lifecycle, claim/close state, blocker graph, execution evidence.
 
 Không được:
-- để backend plan ôm responsibility của foundation
-- tạo plan app-specific mới nếu user chưa yêu cầu
-- descoping hoặc mở rộng phase âm thầm chỉ bằng wording mơ hồ
+- dùng Beads để thay source docs hoặc thay acceptance criteria.
+- close issue khi docs chưa phản ánh scope thực tế.
 
-## Layering Và Ownership Matrix
+## Stable ID Policy
 
-- `docs/plan/AGENTS.md`: contract chung cho execution system layer
-- `docs/plan/foudation/*`: ownership cho setup nền dùng chung (workspace, infra contract, env, scaffold contract, verification baseline)
-- `docs/plan/be/*`: ownership cho backend execution sau khi dependency từ Foundation Plan đã sẵn sàng
+Giữ ổn định các marker:
+- `<!-- mark-phase: ... -->`
+- `<!-- mark-task: ... -->`
+- `<!-- mark-check: ... -->`
 
-Quy tắc chuyển blocker:
-- blocker liên quan workspace/infra/contracts dùng chung -> đưa về Foundation Plan
-- blocker liên quan API/domain/backend runtime -> xử lý trong Backend Plan
+Không đổi stable IDs chỉ để làm đẹp.
 
-## Hybrid Workflow Role Matrix
+## Metadata Bắt Buộc Cho Mỗi Task
 
-| Lớp | Công cụ chính | Output chính | Không được dùng để |
-|---|---|---|---|
-| Planning/Spec | Spec-Kit | `constitution/spec/plan/tasks/implement` mapping trong docs-plan | tracking runtime issue state |
-| Execution Tracking | Beads | issue graph, claim state, blocker state, close evidence | thay source docs hoặc thay acceptance criteria |
-| Source Of Truth | Docs gốc + ADR | business rules, architecture invariants, policy | bị ghi đè bởi plan wording hoặc issue notes |
-
-## Trigger Map Khi Nào Dùng Gì
-
-- Dùng Spec-Kit khi cần:
-	- xác định “cần build gì”, acceptance criteria, task breakdown
-	- chuẩn hóa dependency graph hoặc artifact map trong `docs/plan/*`
-- Dùng Beads khi cần:
-	- trả lời “đang làm đến đâu”, “task nào ready”, “blocker nằm ở đâu”
-	- claim task, cập nhật trạng thái, đóng task với evidence
-
-Quy tắc anti-overlap:
-- Không dùng Beads để sửa hoặc quyết định source docs.
-- Không close task trong Beads nếu docs chưa phản ánh scope thực tế.
-- Khi conflict, ưu tiên docs gốc và cập nhật lại plan/issue cho đồng bộ.
-
-## Spec-Kit Post-Init Contract
-
-- `docs/plan/**` bây giờ chạy trên scaffold Spec-Kit đã có trong repo (`.specify/`).
-- Canonical commands: `speckit-constitution`, `speckit-specify`, `speckit-clarify`, `speckit-plan`, `speckit-tasks`, `speckit-analyze`, `speckit-implement`.
-- Feature artifact path chuẩn hiện tại: `specs/<feature-branch>/spec.md`, `specs/<feature-branch>/plan.md`, `specs/<feature-branch>/tasks.md`.
-- Không dùng skill/spec wrapper ngoài bộ `speckit-*` nếu nó mô tả path hoặc phase-flow khác scaffold đang dùng.
-
-## Metadata Mỗi Task
-
-Mỗi `mark-task` phải có:
+Mỗi `mark-task` phải có đầy đủ:
 - `Type`
 - `Verification mode`
 - `Depends on`
@@ -109,30 +59,44 @@ Mỗi `mark-task` phải có:
 - `Beads`
 - `Definition of done`
 
-`Verification mode` dùng một trong bốn giá trị:
-- `docs-only`: chỉ kiểm chứng tài liệu
-- `current-state`: verify theo commands hoặc artifacts hiện có của repo
-- `target-state`: verify theo contract đích đã chốt
-- `runtime`: bắt buộc có chạy test hoặc runtime checks
+`Verification mode` chỉ dùng 1 trong 4 giá trị:
+- `docs-only`
+- `current-state`
+- `target-state`
+- `runtime`
 
-## Verification
+## Task Sizing Rules
 
-Khi sửa plan:
+Task đạt chuẩn khi:
+- đúng nguyên tắc `1 task = 1 output có thể verify`
+- title hành động cụ thể, không mơ hồ
+- dependency direct, explicit, không cycle
+- touched paths chính nên giữ gọn (khuyến nghị tối đa 3-5 path chính)
+
+Không tạo task kiểu:
+- “hoàn thiện auth”
+- “làm mobile app”
+- “tối ưu toàn bộ infra”
+
+## Close-Evidence Rule (Bắt Buộc)
+
+Issue Beads map từ `mark-task` chỉ được close khi có:
+1. `mark_task_id` khớp 1:1 với docs
+2. `touched_paths_actual`
+3. `verification_commands` + kết quả
+4. test note (`n/a` hoặc danh sách checks)
+5. `drift_check`; nếu drift phải có follow-up issue
+
+## Verification Khi Refactor Plan
+
 1. rà dependency graph
 2. rà phase acceptance gates
 3. rà current-state vs target-state wording
-4. rà touched paths và ownership để không lấn scope
-5. rà consistency với root docs và local `AGENTS.md`
-
-Close-evidence rule (bắt buộc với Beads issue map từ `mark-task`):
-1. `mark_task_id` phải khớp 1:1 với task trong docs
-2. có `touched_paths_actual`
-3. có `verification_commands` + kết quả
-4. có test note (`n/a` hoặc danh sách checks)
-5. có drift check (nếu lệch phải có follow-up issue)
+4. rà touched paths để không lấn scope
+5. rà consistency với root/docs AGENTS và source docs
 
 ## Không Được Làm
 
-- Không đổi stable IDs chỉ để “đẹp hơn”
-- Không để plan dùng terminology khác source docs
-- Không thêm task quá to kiểu “làm auth”, “làm mobile app”, “hoàn thiện infra”
+- không để backend plan ôm trách nhiệm foundation
+- không để foundation plan ôm feature logic app
+- không dùng terminology khác source docs cho cùng một policy

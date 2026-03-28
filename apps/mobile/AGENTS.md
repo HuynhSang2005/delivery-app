@@ -4,7 +4,7 @@
 
 File này là contract cho mọi công việc trong `apps/mobile`.
 
-Nếu file này mâu thuẫn với root `AGENTS.md`, ưu tiên file này cho phạm vi mobile. Nếu file này mâu thuẫn với docs gốc, ưu tiên docs gốc rồi cập nhật file này.
+File này chỉ được specialize root/domain contracts cho phạm vi mobile, không được override source docs hoặc repo invariants.
 
 ## Source Of Truth Cho Mobile
 
@@ -34,6 +34,14 @@ Nếu task còn chạm app shell, workspace, contract generation path, hoặc re
 - mobile không xem Firebase là auth source; backend session mới là canonical app session
 - background behavior trong Expo có giới hạn platform; không được mô tả như always-on realtime tuyệt đối nếu docs chưa chốt
 
+## Cannot Relax
+
+- mobile dùng một app cho cả user mode và driver mode
+- backend session là canonical auth source
+- socket/realtime không thay thế HTTP reconciliation
+- local state không được coi là authoritative cho order/auth/capability
+- không mô tả khả năng background vượt quá giới hạn runtime thực tế
+
 ## Verification
 
 Current-state commands của app:
@@ -47,6 +55,8 @@ Quy tắc:
 - ít nhất chạy `bun run lint` cho thay đổi code
 - chạy manual smoke phù hợp nếu thay đổi route, auth UX, order state, driver mode, hoặc realtime UX
 - luôn ghi rõ đang verify theo current-state hay target-state
+
+Nếu task chạm foundation assumptions (contract generation path, workspace baseline), phải xác nhận dependency đã thỏa trước khi close.
 
 ## Không Được Làm
 

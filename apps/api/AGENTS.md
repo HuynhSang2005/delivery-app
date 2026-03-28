@@ -4,7 +4,7 @@
 
 File này là backend contract cho mọi công việc trong `apps/api`.
 
-Nếu file này mâu thuẫn với root `AGENTS.md`, ưu tiên file này cho phạm vi backend. Nếu file này mâu thuẫn với docs gốc, ưu tiên docs gốc rồi cập nhật lại file này.
+File này chỉ được specialize root/domain contracts cho phạm vi backend, không được override source docs hoặc repo invariants.
 
 ## Source Of Truth Cho Backend
 
@@ -45,6 +45,15 @@ Core backend contexts phải bám docs:
 
 `realtime` là transport và UX support path, không phải business source of truth riêng.
 
+## Cannot Relax
+
+- auth source là backend-owned session
+- `/auth/me` là identity truth cho client
+- realtime chỉ assistive; HTTP và persisted state là authoritative
+- dispatch baseline là `radius + freshness + KNN`
+- onboarding đi trước chat trong delivery path
+- không đổi business enum/lifecycle/contract khi chưa cập nhật docs
+
 ## Invariants Cứng
 
 - auth source là `backend-owned session`
@@ -72,6 +81,8 @@ Quy tắc:
 - chạy `test:e2e` nếu thay đổi ảnh hưởng API flow, bootstrap app, auth, hoặc lifecycle chính
 - nếu thay đổi contract, DTO, status transition, auth, pricing, dispatch, hoặc realtime thì phải đối chiếu docs trước khi kết luận done
 - luôn ghi rõ đang verify theo current-state hay target-state
+
+Khi task backend phụ thuộc foundation, phải nêu rõ dependency đã thỏa trước khi claim runtime completion.
 
 ## Không Được Làm
 
