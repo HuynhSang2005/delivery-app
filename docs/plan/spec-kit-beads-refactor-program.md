@@ -1,27 +1,35 @@
 # Docs-Plan Refactor Program: Spec-Kit + Beads
 
-## Mục Tiêu
+## Trạng Thái Tài Liệu
 
-Tạo một chương trình refactor duy nhất để AI-agent và con người có thể follow nhất quán khi chuyển `docs/plan` sang workflow kết hợp:
+Tài liệu này giữ vai trò **lịch sử chương trình refactor**.
 
-- Spec-Kit cho spec-driven planning
-- Beads cho persistent task-memory và execution tracking
+Không dùng file này làm runtime contract chính.
 
-File này là execution source cho đợt refactor hiện tại trong phạm vi `docs/plan/**`.
+Canonical runtime references hiện tại:
+- `docs/plan/AGENTS.md`
+- `docs/plan/README.md`
+- `docs/plan/ai-agent-workflow-playbook.md`
+- `docs/plan/governance/phase-task-standard.md`
+- `docs/plan/governance/execution-checklist.md`
+
+## Mục Tiêu Ban Đầu
+
+Mục tiêu của chương trình là tách rõ 2 lớp:
+- Spec-Kit cho planning artifacts
+- Beads cho execution tracking và evidence
 
 ## Decision Summary
 
-- Không dùng Beads để thay thế spec planning.
-- Không dùng Spec-Kit để thay issue-tracking runtime.
-- Tách vai trò:
-  - Spec-Kit: định nghĩa cái gì cần build, acceptance criteria, implementation plan, task breakdown.
-  - Beads: theo dõi tiến độ, blocker graph, evidence và context qua nhiều sessions.
+- Không dùng Beads để thay thế planning artifacts.
+- Không dùng Spec-Kit để thay issue lifecycle runtime.
+- Mọi conflict phải quay về source docs + ADR.
 
-## Current-State Snapshot
+## Current-State Snapshot (Đã Cập Nhật)
 
-- `docs/plan/be` và `docs/plan/foudation` đã có phase roadmap + `mark-task` IDs ổn định.
-- Chưa có scaffold Spec-Kit (`.specify`, `specs/` chưa tồn tại).
-- Chưa có workspace Beads (`.beads` chưa tồn tại).
+- `docs/plan/be` và `docs/plan/foudation` là execution phases hiện hành.
+- Spec-Kit scaffold đã có trong repo (`.specify/`).
+- Beads workflow đang dùng cho claim/close/evidence.
 
 ### Tool Audit Baseline (2026-03-27, trước DPR-P00)
 
