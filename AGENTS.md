@@ -85,7 +85,8 @@ Trigger nhanh:
   - `apps/api`: `bun run build`, `bun run start:dev`, `bun run lint`, `bun run test`, `bun run test:e2e`
   - `apps/admin-web`: `bun run dev`, `bun run build`, `bun run lint`
   - `apps/mobile`: `bun run start`, `bun run lint`
-- target-state verification sau foundation: `nx affected -t lint typecheck test build`; khi đổi flow quan trọng chạy thêm `nx affected -t e2e`
+- target-state verification sau `FDN-R01` runtime bootstrap: `nx affected -t lint typecheck test build`; khi đổi flow quan trọng chạy thêm `nx affected -t e2e`
+- docs-only work bắt buộc có docs QA theo scope đã sửa (consistency, links, metadata) trước khi close
 
 Không claim complete nếu chưa có verification evidence hoặc chưa nêu rõ vì sao task là docs-only.
 
