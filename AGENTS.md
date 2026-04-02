@@ -80,7 +80,8 @@ Trigger nhanh:
 ## Verification
 
 - luôn ghi rõ mode: `docs-only`, `current-state`, `target-state`, `runtime`
-- current-state hiện chưa có root-level `nx` executable baseline hoàn chỉnh
+- target-state là baseline mặc định sau khi hoàn tất `FDN-R01`
+- current-state chỉ dùng như fallback tạm thời khi target-state bị chặn và phải có evidence lý do
 - app-level commands hiện có:
   - `apps/api`: `bun run build`, `bun run start:dev`, `bun run lint`, `bun run test`, `bun run test:e2e`
   - `apps/admin-web`: `bun run dev`, `bun run build`, `bun run lint`

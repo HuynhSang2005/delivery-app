@@ -1,0 +1,10 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE SCHEMA IF NOT EXISTS foundation;
+
+CREATE TABLE IF NOT EXISTS foundation.demo_accounts (
+  id TEXT PRIMARY KEY,
+  role TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

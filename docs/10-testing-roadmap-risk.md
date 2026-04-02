@@ -60,6 +60,14 @@ Diễn giải:
 - PR mặc định chạy `nx affected -t lint typecheck test build`
 - thay đổi chạm vào flow quan trọng thì chạy thêm `nx affected -t e2e`
 - hosted demo thì có thêm `smoke`
+- pre-commit bắt buộc chạy `lint-staged` với `nx affected -t lint typecheck test --files` trên staged files
+
+### Verification mode theo giai đoạn
+
+- `current-state`: khi root Nx workspace chưa executable đầy đủ, dùng app-level verification commands theo runbook và ghi rõ đây là fallback tạm thời
+- `target-state`: khi workspace graph và target contracts đã sẵn sàng, dùng canonical path `nx affected -t lint typecheck test build` và bổ sung `e2e` khi flow trọng yếu đổi
+- không được báo cáo `target-state` nếu evidence vẫn dùng command set của `current-state`
+- sau khi hoàn tất `FDN-R01`, verification mặc định phải ưu tiên `target-state`; `current-state` chỉ là fallback có ghi rõ lý do
 
 ## Ma Trận Kiểm Thử Theo Ứng Dụng
 

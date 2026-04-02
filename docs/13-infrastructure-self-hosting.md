@@ -153,6 +153,31 @@ Ghi chú:
 ### Redis
 
 - queue backend hoặc transient runtime support
+- trong baseline local-first, Redis bật qua compose profile riêng thay vì bật mặc định
+
+## Ownership Boundary (Infra vs App Runtime)
+
+| Nhóm | Infra ownership | App-level ownership |
+| --- | --- | --- |
+| Data services | service/container definitions cho PostgreSQL/PostGIS/Redis, network, volumes | connection string và runtime toggles tại `apps/*` env files |
+| Secrets | secret file placement, file permissions, injection path | giá trị secret cụ thể theo app hoặc môi trường |
+| Runtime policy | deployment topology, public/private exposure | business behavior flags và feature-level config |
+
+Rule:
+
+- infra artifacts không phải nơi chứa business rules
+- app runtime config không được ghi đè topology contract đã chốt ở infra layer
+
+### Secrets handling theo context
+
+- local: dùng sample/env template cho onboarding; secret thật giữ ở local env hoặc secret file ngoài git
+- CI: dùng encrypted secrets của GitHub Actions và mapping tối thiểu theo principle of least privilege
+- self-host: secret file placement do infra ownership quản lý; app owners chỉ cung cấp runtime values cần thiết
+
+Không được:
+
+- in secret values ra logs/terminal output khi verify
+- commit env file chứa secret thật vào repo
 
 ## Scaling Strategy
 
@@ -192,6 +217,13 @@ Ghi chú:
 - chốt cadence backup trước khi public demo
 - backup phải nằm ngoài container lifecycle
 - restore drill phải được chạy ít nhất một lần trước khi coi hosted demo là đáng tin
+
+Deterministic drill baseline:
+
+- `bun run db:migrate`
+- `bun run db:seed`
+- `bun run db:smoke`
+- `bun run db:reset`
 
 ## Kết Luận
 

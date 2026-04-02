@@ -70,6 +70,25 @@ Baseline đã chốt cho `CV-ready MVP-1`. `Local-first` là chuẩn mặc đị
 - `nx affected -t lint typecheck test build`
 - `nx affected -t e2e` khi có thay đổi ảnh hưởng tới flow end-to-end
 - `nx run-many -t lint typecheck test --projects api,admin-web,mobile` khi cần chạy thủ công theo nhóm
+- khi repo có project phụ ngoài app scope, dùng `--projects=api,admin-web,mobile` để giữ gate đúng phạm vi delivery runtime
+
+### Mandatory pre-commit gate
+
+- hook pre-commit bắt buộc chạy qua `lint-staged`
+- staged files phải pass `nx affected -t lint typecheck test --files`
+- không bypass pre-commit gate cho các thay đổi runtime thuộc foundation hoặc backend phases
+
+### Verification matrix (current-state vs target-state)
+
+| Mode | Khi dùng | Command baseline |
+| --- | --- | --- |
+| `current-state` | root `Nx` workspace chưa executable đầy đủ | app-level commands: `apps/api`, `apps/admin-web`, `apps/mobile` |
+| `target-state` | workspace graph/targets đã sẵn sàng | `nx affected -t lint typecheck test build` (+ `e2e` khi flow trọng yếu đổi) |
+
+Rule:
+
+- mọi evidence phải ghi rõ mode đang verify
+- không claim `target-state` nếu vẫn đang chạy fallback `current-state`
 
 ### CI maintenance
 
@@ -99,16 +118,52 @@ Quy tắc:
 
 ## Bootstrap Local
 
+### Local data baseline contract
+
+- PostgreSQL local mặc định: port `5432`
+- Redis local (khi bật): port `6379`
+- extension bắt buộc cho baseline delivery: `postgis`
+- Redis chỉ bật khi có lý do runtime rõ: transient support hoặc worker/queue path
+
+Ownership boundary:
+
+- `infra/*` sở hữu container topology, volumes, networks, bootstrap scripts
+- app-level env (`apps/*`) sở hữu runtime vars và feature toggles của app tương ứng
+- không đẩy business policy vào compose/service definitions
+
 ### Bước 1: Chuẩn bị config
 
 - tạo file env local cho `api`, `admin-web`, `mobile`
 - điền tối thiểu `DATABASE_URL`, `JWT_SECRET`, `API_BASE_URL`, `ADMIN_BASE_URL`
 - chỉ thêm `REDIS_URL` khi biến thể hiện tại thực sự bật Redis
 
+### Env layout và ownership theo context
+
+| Context | Env scope | Ownership | Secrets policy |
+| --- | --- | --- | --- |
+| Local dev | root `.env.local` (nếu cần), app-level env tại `apps/api`, `apps/admin-web`, `apps/mobile` | từng app owner chịu trách nhiệm biến runtime của app đó | không commit secret thật; ưu tiên local secret files hoặc shell env |
+| CI | repository/environment secrets của GitHub Actions + workflow env mapping | CI/workflow owner + app owner cùng review | dùng GitHub Actions secrets; không echo secrets ra logs |
+| Self-host | env files hoặc secret files trên host/VPS cho compose stack | infra owner cho placement và permissions; app owner cho giá trị runtime | secret file/env file phải có permissions rõ và tách khỏi source control |
+
+Rule:
+
+- mỗi biến bắt buộc phải có một owner rõ (`infra` hoặc app cụ thể)
+- không mô tả một biến bắt buộc ở nhiều scope nếu chưa chỉ rõ precedence
+- khi có trùng tên biến giữa contexts, ưu tiên policy precedence đã chốt của compose hoặc workflow runtime
+
 ### Bước 2: Bật data layer
 
 - chạy Docker Compose cho PostgreSQL + PostGIS
 - chỉ bật Redis nếu biến thể hiện tại thực sự dùng đến
+
+Command baseline:
+
+- `bun run db:up`
+- `bun run db:up:redis` khi cần Redis profile
+- `bun run db:migrate`
+- `bun run db:seed`
+- `bun run db:smoke`
+- `bun run db:reset`
 
 ### Bước 2.5: Migrate và seed deterministic fixtures
 
@@ -116,6 +171,19 @@ Quy tắc:
 - seed tối thiểu `user`, `driver`, `admin` accounts
 - seed fixed coordinates và dispatch fixtures đủ để smoke test
 - phải có reset path để đưa local DB về trạng thái demo lặp lại được
+
+Deterministic sequence contract:
+
+1. `migrate`: cập nhật schema lên trạng thái mong muốn
+2. `seed-baseline`: nạp baseline fixtures dùng chung cho mọi app plan
+3. `smoke-check`: verify dataset baseline dùng được cho happy-path tối thiểu
+4. `reset`: quay về trạng thái sạch và chạy lại `migrate -> seed-baseline`
+
+Fixture boundary:
+
+- baseline fixtures (foundation): identities tối thiểu, coordinates chuẩn, dispatch fixtures cơ bản
+- domain fixtures (app-specific phases): dữ liệu nghiệp vụ sâu cho từng bounded context
+- app-specific phases chỉ được bổ sung domain fixtures trên cùng reset/seed contract đã chốt
 
 ### Bước 3: Chạy app layer
 

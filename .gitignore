@@ -19,6 +19,7 @@ build/
 # Build & coverage
 coverage/
 .turbo/
+.nx/
 
 # IDE
 .vscode/
