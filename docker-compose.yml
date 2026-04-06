@@ -1,0 +1,86 @@
+name: delivery-app
+
+x-postgres-env: &postgres-env
+  POSTGRES_DB: ${POSTGRES_DB:-delivery_app}
+  POSTGRES_USER: ${POSTGRES_USER:-delivery_user}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-delivery_pass}
+
+services:
+  postgres:
+    image: postgis/postgis:${POSTGRES_IMAGE_TAG:-16-3.4}
+    restart: unless-stopped
+    environment: *postgres-env
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/sql:/docker-entrypoint-initdb.d:ro
+      - db_backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-delivery_user} -d ${POSTGRES_DB:-delivery_app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - backend
+
+  redis:
+    image: redis:${REDIS_IMAGE_TAG:-7-alpine}
+    restart: unless-stopped
+    profiles: ["redis", "worker", "jobs"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - backend
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    profiles: ["debug"]
+    environment:
+      REDIS_HOSTS: local:redis:${REDIS_PORT:-6379}
+      HTTP_USER: ${REDIS_COMMANDER_USER:-admin}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-admin}
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+
+  db-backup:
+    image: postgis/postgis:${POSTGRES_IMAGE_TAG:-16-3.4}
+    profiles: ["jobs"]
+    environment:
+      <<: *postgres-env
+      PGPASSWORD: ${POSTGRES_PASSWORD:-delivery_pass}
+      BACKUP_FILE: ${DB_BACKUP_FILE:-delivery_app_backup.sql}
+    command: >
+      sh -c "pg_dump -h postgres -U ${POSTGRES_USER:-delivery_user} -d ${POSTGRES_DB:-delivery_app} -F p -f /backups/$${BACKUP_FILE}"
+    volumes:
+      - db_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  db_backups:
