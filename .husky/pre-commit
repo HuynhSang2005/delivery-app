@@ -1,2 +1,11 @@
 #!/usr/bin/env sh
-bunx lint-staged
+if command -v bun >/dev/null 2>&1; then
+  bun x lint-staged --relative
+elif [ -x ./node_modules/.bin/lint-staged ]; then
+  ./node_modules/.bin/lint-staged --relative
+elif [ -x ./node_modules/.bin/lint-staged.exe ]; then
+  ./node_modules/.bin/lint-staged.exe --relative
+else
+  echo 'lint-staged binary not found. Run bun install first.' >&2
+  exit 127
+fi
