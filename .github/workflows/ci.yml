@@ -11,18 +11,41 @@ on:
         description: 'Run current-state fallback path instead of Nx target-state'
         required: false
         default: 'false'
-      fallbackReason:
-        description: 'Mandatory note when useCurrentStateFallback=true'
-        required: false
-        default: ''
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
+  security-guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dependency review gate
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+
+      - name: Secret scanning baseline
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull request title policy
+        if: github.event_name == 'pull_request'
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   verify:
+    needs: security-guardrails
     runs-on: ubuntu-latest
     env:
       NX_INTERACTIVE: "false"
       USE_CURRENT_STATE_FALLBACK: ${{ github.event.inputs.useCurrentStateFallback || 'false' }}
-      FALLBACK_REASON: ${{ github.event.inputs.fallbackReason || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,21 +60,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: CI mode summary
-        run: |
-          echo "mode=${USE_CURRENT_STATE_FALLBACK}"
-          echo "base=origin/main"
-          echo "head=HEAD"
-
-      - name: Validate fallback policy
-        if: env.USE_CURRENT_STATE_FALLBACK == 'true'
-        run: |
-          if [ -z "$FALLBACK_REASON" ]; then
-            echo "Fallback requested but fallbackReason is empty."
-            exit 1
-          fi
-          echo "fallback_reason=$FALLBACK_REASON"
-
       - name: Target-state quality gate
         if: env.USE_CURRENT_STATE_FALLBACK != 'true'
         run: bun run affected --base=origin/main --head=HEAD
@@ -64,6 +72,10 @@ jobs:
       - name: Shared-platform smoke checks
         if: env.USE_CURRENT_STATE_FALLBACK != 'true'
         run: bun run shared:smoke
+
+      - name: Release smoke contracts
+        if: env.USE_CURRENT_STATE_FALLBACK != 'true'
+        run: bun run release:smoke
 
       - name: Current-state fallback gate
         if: env.USE_CURRENT_STATE_FALLBACK == 'true'
