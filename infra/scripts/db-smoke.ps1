@@ -1,9 +1,14 @@
 $ErrorActionPreference = 'Stop'
 
-$composeFile = 'infra/docker-compose.yml'
+$composeFile = 'docker-compose.yml'
 $service = 'postgres'
 $db = if ($env:POSTGRES_DB) { $env:POSTGRES_DB } else { 'delivery_app' }
 $user = if ($env:POSTGRES_USER) { $env:POSTGRES_USER } else { 'delivery_user' }
+
+docker compose -f $composeFile up -d --wait --wait-timeout 120 $service
+if ($LASTEXITCODE -ne 0) {
+  throw "[db-smoke] failed to start $service"
+}
 
 Write-Host '[db-smoke] Running PostGIS and seed smoke checks...'
 $extensionCheck = docker compose -f $composeFile exec -T $service psql -U $user -d $db -tA -c "SELECT extname FROM pg_extension WHERE extname = 'postgis';"
