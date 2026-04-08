@@ -1,0 +1,17 @@
+{
+  "name": "shared-kernel",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo \"No shared-kernel lint yet\"",
+    "test": "echo \"No shared-kernel tests yet\""
+  },
+  "nx": {
+    "tags": ["scope:shared", "type:util", "platform:shared"]
+  }
+}

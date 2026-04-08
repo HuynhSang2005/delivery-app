@@ -1,0 +1,22 @@
+{
+  "name": "api-client",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "generate": "openapi-ts -f ../../openapi-ts.config.ts",
+    "check:generated": "bun run generate && git diff --exit-code -- src/generated",
+    "lint": "echo \"No api-client lint yet\"",
+    "test": "echo \"No api-client tests yet\""
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "^0.4.2"
+  },
+  "nx": {
+    "tags": ["scope:shared", "type:util", "platform:shared"]
+  }
+}
