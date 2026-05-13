@@ -1,11 +1,14 @@
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-file_opener = "vscode"
+[mcp_servers.serena]
+command = "serena"
+args = ["start-mcp-server", "--project-from-cwd", "--context=codex"]
+startup_timeout_sec = 30
 
-[sandbox_workspace_write]
-network_access = false
+env = { SystemRoot = "C:\\Windows", PROGRAMFILES = "C:\\Program Files" }
 
-[mcp_servers.context7]
-url = "https://mcp.context7.com/mcp/oauth"
-startup_timeout_sec = 40
-required = false
+[mcp_servers.nx-mcp]
+command = "bunx"
+args = [
+  "nx",
+  "mcp",
+  "--no-minimal"
+]
