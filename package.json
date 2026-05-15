@@ -10,27 +10,44 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "nx": "nx",
+    "nx": "bunx nx",
     "graph": "nx graph",
-    "show:projects": "nx show projects",
-    "affected": "NX_INTERACTIVE=false nx affected -t lint typecheck test build --exclude=react-hook-form-zod-example,@expo/cicd-workflows-skill,pretty-mermaid-skill",
-    "affected:e2e": "NX_INTERACTIVE=false nx affected -t e2e --exclude=react-hook-form-zod-example,@expo/cicd-workflows-skill,pretty-mermaid-skill",
-    "db:up": "docker compose -f infra/docker-compose.yml up -d",
-    "db:up:redis": "docker compose -f infra/docker-compose.yml --profile redis up -d",
-    "db:down": "docker compose -f infra/docker-compose.yml down",
+    "show:projects": "NX_DAEMON=false bunx nx show projects --json",
+    "contract:export": "bun run --cwd apps/api openapi:export",
+    "contract:generate": "bun run --cwd packages/api-client generate",
+    "contract:sync": "bun run contract:export && bun run contract:generate",
+    "affected": "NX_DAEMON=false NX_INTERACTIVE=false bunx nx affected -t lint typecheck test build",
+    "affected:e2e": "NX_DAEMON=false NX_INTERACTIVE=false bunx nx affected -t e2e",
+    "workspace:conformance": "bun run --cwd tools/workspace-conformance conformance",
+    "db:up": "docker compose up -d postgres",
+    "db:up:redis": "docker compose --profile redis up -d postgres redis",
+    "db:up:debug": "docker compose --profile redis --profile debug up -d postgres redis redis-commander",
+    "db:ps": "docker compose ps",
+    "db:logs": "docker compose logs -f postgres redis",
+    "db:down": "docker compose --profile redis --profile debug --profile jobs down --remove-orphans",
+    "db:down:volumes": "docker compose --profile redis --profile debug --profile jobs down --remove-orphans -v",
     "db:migrate": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-migrate.ps1",
     "db:seed": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-seed.ps1",
     "db:smoke": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-smoke.ps1",
-    "db:reset": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-reset.ps1"
+    "db:reset": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-reset.ps1",
+    "db:restore": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-restore.ps1",
+    "db:drill:backup-restore": "powershell -ExecutionPolicy Bypass -File infra/scripts/db-backup-restore-drill.ps1",
+    "job:db-backup": "docker compose --profile jobs run --rm db-backup",
+    "shared:smoke": "bun run contract:sync && bun run --cwd packages/api-client check:generated && bun run workspace:conformance",
+    "release:smoke": "bun tools/release-smoke/run-release-smoke.mjs"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "0.95.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.5.2",
-    "nx": "21.6.3"
+    "lint-staged": "16.4.0",
+    "nx": "22.7.1"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "nx affected -t lint typecheck test --exclude=react-hook-form-zod-example,@expo/cicd-workflows-skill,pretty-mermaid-skill --files"
+      "cross-env NX_DAEMON=false NX_INTERACTIVE=false bunx nx affected -t lint typecheck test --files"
     ]
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0"
   }
 }

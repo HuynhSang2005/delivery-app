@@ -10,7 +10,7 @@ for (const key of Object.keys(cleanEnv)) {
 
 cleanEnv.NODE_ENV = 'production';
 
-const child = spawn('bun', ['run', '--cwd', 'apps/admin-web', 'build', '--', '--webpack'], {
+const child = spawn('bun', ['run', '--cwd', 'apps/admin-web', 'build'], {
   env: cleanEnv,
   stdio: 'inherit',
 });

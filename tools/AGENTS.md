@@ -1,47 +1,47 @@
-# AGENTS.md
+# tools Agent Contract
 
-## Vai Trò
-
-File này áp dụng cho mọi generator, codegen helper, conformance script, và workspace tooling trong `tools/`.
-
-`tools/` chỉ nên chứa tooling phục vụ repo. Nó không được trở thành nơi cất business logic của app.
-
-File này chỉ được specialize rules từ root AGENTS, không được override source docs hoặc repo invariants.
+This file applies to workspace tooling, code generation, conformance helpers,
+release smoke helpers, and scripts under `tools/`.
 
 ## Source Of Truth
 
-Đọc tối thiểu trước khi sửa:
-- `docs/08-api-realtime-contracts.md`
+Read before tooling changes:
+
 - `docs/09-devops-runbook.md`
+- `docs/10-testing-roadmap-risk.md`
 - `docs/12-folder-structure.md`
 - `docs/14-tech-stack-catalog.md`
-- `docs/plan/foudation/`
+- `docs/11-adrs.md`
 
-## Invariants
+## Tooling Rules
 
-- tooling phải tôn trọng `bun` và target `Nx` workspace
-- generated HTTP contract chỉ đi qua path dùng chung đã chốt, đặc biệt `packages/api-client`
-- generated output không phải source of truth; docs và canonical contracts mới là nguồn đúng
-- tooling phải deterministic và idempotent ở mức hợp lý
-- không hardcode starter paths nếu chúng mâu thuẫn target architecture
+- Tooling must make drift visible, not hide it.
+- Conformance checks should fail fast on placeholder scripts, nested lockfiles,
+  invalid project metadata, and workspace boundary violations.
+- Codegen helpers must be deterministic and idempotent.
+- Release smoke must assert runtime wiring and must not pass required runtime
+  dependencies silently.
+- Do not hardcode starter paths that contradict target architecture.
 
-## Cannot Relax
+## Generated Code
 
-- không được đưa business rule/domain policy vào generator script
-- không được sinh artifact vào path chưa có ownership rõ trong `docs/12`
-- không được tạo workflow `npm` hoặc lockfile trái chuẩn `bun`
-- không được coi generated artifact là canonical truth khi conflict với docs
+- Generated API client artifacts belong under `packages/api-client/src/generated`.
+- Do not hand-edit generated artifacts except as an output of the generator.
+- `bun run shared:smoke` must prove export/generate/idempotency/conformance.
 
 ## Verification
 
-- luôn ghi rõ current-state hay target-state
-- nếu tooling ảnh hưởng contract, verification baseline, hoặc package boundaries thì rà lại foundation plan và docs gốc tương ứng
-- script hoặc generator mới phải có ownership rõ: phục vụ app nào, output ở đâu, và ai tiêu thụ
+State `current-state`, `target-state`, or `runtime`.
 
-Nếu tool output mâu thuẫn source docs, phải sửa docs-plan/tooling contract hoặc rollback tool output trước khi close.
+Relevant commands:
 
-## Không Được Làm
+- `bun run workspace:conformance`
+- `bun run shared:smoke`
+- `bun run release:smoke`
+- `bun run affected`
 
-- không giấu business rule vào tooling script
-- không sinh artifact vào path chưa được docs hoặc plan chốt
-- không tạo workflow `npm` hoặc lockfile trái với chuẩn `bun`
+## Prohibited
+
+- Do not add placeholder checks that always pass.
+- Do not make lint/test/build commands mutate source files.
+- Do not introduce npm workflows or nested lockfiles.

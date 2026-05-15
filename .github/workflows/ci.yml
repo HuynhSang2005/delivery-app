@@ -13,6 +13,7 @@ on:
         default: 'false'
 
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
@@ -60,13 +61,23 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Set NX SHAs
+        if: env.USE_CURRENT_STATE_FALLBACK != 'true'
+        uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: main
+
       - name: Target-state quality gate
         if: env.USE_CURRENT_STATE_FALLBACK != 'true'
-        run: bun run affected --base=origin/main --head=HEAD
+        run: bun run affected --base="${NX_BASE}" --head="${NX_HEAD}"
+
+      - name: Install Playwright browser dependencies
+        if: env.USE_CURRENT_STATE_FALLBACK != 'true'
+        run: bunx --cwd apps/admin-web playwright install --with-deps chromium
 
       - name: Target-state e2e gate (blocking)
         if: env.USE_CURRENT_STATE_FALLBACK != 'true'
-        run: bun run affected:e2e --base=origin/main --head=HEAD
+        run: bun run affected:e2e --base="${NX_BASE}" --head="${NX_HEAD}"
 
       - name: Shared-platform smoke checks
         if: env.USE_CURRENT_STATE_FALLBACK != 'true'

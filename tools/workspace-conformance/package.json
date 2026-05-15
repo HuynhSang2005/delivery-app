@@ -4,13 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "echo \"No build output for workspace-conformance\"",
-    "typecheck": "echo \"No workspace-conformance typecheck yet\"",
-    "lint": "echo \"No workspace-conformance lint yet\"",
+    "build": "node --check ./src/check-workspace-conformance.mjs",
+    "typecheck": "node --check ./src/check-workspace-conformance.mjs",
+    "lint": "node --check ./src/check-workspace-conformance.mjs",
     "test": "node ./src/check-workspace-conformance.mjs --self-test",
     "conformance": "node ./src/check-workspace-conformance.mjs"
   },
   "nx": {
-    "tags": ["scope:infra", "type:tooling", "platform:shared"]
+    "tags": [
+      "scope:infra",
+      "type:tooling",
+      "platform:shared"
+    ]
   }
 }
