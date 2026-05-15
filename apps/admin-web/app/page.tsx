@@ -1,63 +1,116 @@
-import Image from "next/image";
+import { createClient, createConfig, healthControllerLive, healthControllerReady } from "api-client";
+import { DELIVERY_MVP_SEQUENCE, FOUNDATION_CAPABILITIES, SHARED_KERNEL_VERSION } from "shared-kernel";
 
-export default function Home() {
+type HealthCheckResult = {
+  endpoint: string;
+  ok: boolean;
+  status: number;
+  errorMessage?: string;
+};
+
+function createAdminApiClient() {
+  const baseUrl =
+    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1";
+
+  return createClient(createConfig({ baseUrl }));
+}
+
+async function runHealthCheck(
+  endpoint: string,
+  request: ReturnType<typeof healthControllerLive> | ReturnType<typeof healthControllerReady>,
+): Promise<HealthCheckResult> {
+  try {
+    const result = await request;
+    return {
+      endpoint,
+      ok: result.response.ok,
+      status: result.response.status,
+    };
+  } catch (error: unknown) {
+    return {
+      endpoint,
+      ok: false,
+      status: 0,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+export default async function Home() {
+  const apiClient = createAdminApiClient();
+  const [live, ready] = await Promise.all([
+    runHealthCheck("GET /health/live", healthControllerLive({ client: apiClient, throwOnError: true })),
+    runHealthCheck("GET /health/ready", healthControllerReady({ client: apiClient, throwOnError: true })),
+  ]);
+
+  const checks = [live, ready];
+  const allHealthy = checks.every((check) => check.ok);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-6 py-12">
+      <main className="w-full max-w-2xl rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Delivery Foundation Console</h1>
+            <p className="mt-2 text-sm text-zinc-600">
+              Runtime shell dang dung <code>packages/api-client</code> va <code>packages/shared-kernel</code>.
+            </p>
+          </div>
+          <span
+            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+              allHealthy ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+            }`}
+          >
+            {allHealthy ? "healthy" : "degraded"}
+          </span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <ul className="space-y-3">
+          {checks.map((check) => (
+            <li key={check.endpoint} className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-mono text-sm text-zinc-800">{check.endpoint}</p>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wide ${
+                    check.ok ? "text-emerald-700" : "text-rose-700"
+                  }`}
+                >
+                  {check.ok ? `ok (${check.status})` : `fail (${check.status || "n/a"})`}
+                </p>
+              </div>
+              {check.errorMessage ? <p className="mt-2 text-xs text-rose-700">{check.errorMessage}</p> : null}
+            </li>
+          ))}
+        </ul>
+
+        <section className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <p className="text-xs font-semibold uppercase text-zinc-500">Delivery path</p>
+            <p className="mt-2 text-sm font-medium text-zinc-900">{DELIVERY_MVP_SEQUENCE.join(" -> ")}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <p className="text-xs font-semibold uppercase text-zinc-500">Shared kernel</p>
+            <p className="mt-2 text-sm font-medium text-zinc-900">v{SHARED_KERNEL_VERSION}</p>
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+          <p className="text-xs font-semibold uppercase text-zinc-500">Foundation ownership</p>
+          <ul className="mt-3 space-y-2">
+            {FOUNDATION_CAPABILITIES.map((capability) => (
+              <li key={capability.key} className="flex items-center justify-between gap-4 text-sm">
+                <span className="text-zinc-800">{capability.label}</span>
+                <span className="font-mono text-xs text-zinc-500">{capability.owner}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="mt-8 rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-600">
+          <p>
+            API base URL: <code>{process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1"}</code>
+          </p>
+          <p className="mt-2">Set <code>API_BASE_URL</code> hoac <code>NEXT_PUBLIC_API_BASE_URL</code> de doi endpoint.</p>
         </div>
       </main>
     </div>

@@ -1,91 +1,92 @@
-# Playbook Làm Việc Với AI-Agent
+# AI-Agent Workflow Playbook
 
-Playbook này dành cho dev khi phối hợp với AI-agent trong `delivery-app`.
+This playbook is for coordinating AI-agent work in `delivery-app`.
 
-## 1) Trước Khi Giao Việc
+## 1. Before Assigning Work
 
-Checklist:
-- xác định scope: docs-only, planning, hay implementation
-- xác định folder ownership: docs, docs/plan, infra, tools, apps
-- xác định verification mode: `docs-only`, `current-state`, `target-state`, `runtime`
-- xác định output mong muốn ở mức file/task (không mơ hồ)
+Define:
 
-Prompt nên có:
-- mục tiêu business
-- phạm vi in-scope/out-of-scope
-- tiêu chí done
-- ràng buộc docs cần bám
+- scope: `docs-only`, planning, or implementation
+- folder ownership: docs, docs/plan, infra, tools, apps, or packages
+- verification mode: `docs-only`, `current-state`, `target-state`, or `runtime`
+- expected output at file or task level
 
-## 2) Trong Lúc AI-Agent Làm Việc
+Good prompts include business goal, in-scope/out-of-scope boundaries, done
+criteria, and source docs that must be followed.
 
-Yêu cầu agent:
-- đọc source docs trước khi sửa
-- tạo hoặc claim issue Beads trước khi sửa lớn
-- chia task nhỏ theo nguyên tắc `1 task = 1 output verify được`
-- cập nhật blocker sớm, không ôm việc lớn trong 1 issue
+## 2. During Execution
 
-Nên review theo checkpoint:
-- checkpoint 1: model/workflow đề xuất
-- checkpoint 2: file map + impact map
-- checkpoint 3: patch + verification evidence
+Agents should:
 
-## 3) Claim/Close Protocol (Beads)
+- read source docs before changing behavior
+- create or claim a Beads issue before large implementation work
+- keep task size close to `1 task = 1 verifiable output`
+- report blockers early
+- avoid expanding scope silently
+
+Recommended checkpoints:
+
+1. proposed model and workflow
+2. file map and impact map
+3. patch plus verification evidence
+
+## 3. Beads Claim/Close Protocol
 
 1. `bd prime --json`
 2. `bd ready --json`
 3. `bd update <id> --claim --json`
-4. thực thi theo scope issue
-5. `bd close <id> --reason "Completed" --json` khi đủ evidence
+4. execute the issue scope
+5. record evidence
+6. `bd close <id> --reason "Completed" --json`
 
-Close gate bắt buộc:
-- có touched paths actual
-- có verification commands + kết quả
-- có test note (`n/a` nếu docs-only)
-- có drift check, nếu lệch thì tạo follow-up issue
+Close evidence must include touched paths, verification commands and results,
+test notes, and drift notes.
 
-## 4) Spec-Kit Protocol
+## 4. Planning Vs Tracking
 
-Dùng Spec-Kit khi cần trả lời:
-- cần build cái gì
-- acceptance criteria nào
-- task decomposition như thế nào
+Use source docs plus `docs/plan/` when deciding:
 
-Dùng Beads khi cần trả lời:
-- đang làm đến đâu
-- blocked bởi gì
-- close đủ điều kiện chưa
+- what to build
+- acceptance criteria
+- dependency order
+- task decomposition
 
-Không overlap:
-- không dùng Beads để thay source docs
-- không bỏ qua update docs khi đổi scope/acceptance
+Use Beads when deciding:
 
-## 5) Rule Chống Mơ Hồ
+- what is ready
+- what is claimed
+- what is blocked
+- whether a task has enough evidence to close
 
-Không giao task mơ hồ:
-- "hoàn thiện auth"
-- "tối ưu toàn bộ dispatch"
+Do not use Beads as source docs. Do not skip source-doc updates when scope or
+acceptance criteria change.
 
-Nên giao task có output rõ:
-- "chốt metadata template cho mark-task trong docs/plan"
-- "thêm close-evidence checklist cho workflow backend"
+## 5. Anti-Vague Task Rule
 
-## 6) Rule Chống Crash VS Code
+Avoid vague tasks:
 
-- ưu tiên search có scope hẹp, không dump recursive toàn repo
-- chia query thành lô nhỏ
-- giới hạn output
-- nếu thấy dấu hiệu encoding lỗi, dừng lại và khôi phục scope bị ảnh hưởng trước khi sửa tiếp
+- "finish auth"
+- "optimize all dispatch"
+- "fix the whole foundation"
 
-## 7) Kết Thúc Session
+Prefer concrete outputs:
 
-Checklist:
-- verify lại file đã sửa
-- close issue đã đủ evidence
-- tổng kết thay đổi + rủi ro còn lại
-- nếu cần, `bd dolt push`
+- "define mark-task metadata template in docs/plan"
+- "add close-evidence checklist for backend workflow"
+- "verify Redis profile healthcheck in Docker Compose"
 
-Dev handoff note nên có:
-- đã làm gì
-- chưa làm gì
-- blocker/follow-up
-- lệnh verify chính
+## 6. IDE-Safe Search
+
+- Prefer scoped searches.
+- Avoid dumping recursive full-repo output when a file or folder scope is enough.
+- Split broad checks into smaller batches.
+- Stop and narrow scope when output is too large to review accurately.
+
+## 7. End Session
+
+Before closing:
+
+- verify changed files
+- close only issues with evidence
+- summarize changes, residual risks, and follow-up work
+- attempt Beads backup when network access is available

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill": "workspace-conformance",
+  "cases": [
+    {
+      "name": "skill-quality-gate",
+      "prompt": "Add a local skill that duplicates an installed Codex plugin skill.",
+      "expected": [
+        "flags plugin duplicate",
+        "requires repo-specific value for local skills",
+        "keeps conformance deterministic and local"
+      ]
+    }
+  ]
+}

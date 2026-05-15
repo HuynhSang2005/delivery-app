@@ -1,14 +1,11 @@
-# AGENTS.md
+# apps/api Agent Contract
 
-## Vai Trò
+This file applies to backend work under `apps/api`.
 
-File này là backend contract cho mọi công việc trong `apps/api`.
+## Source Of Truth
 
-File này chỉ được specialize root/domain contracts cho phạm vi backend, không được override source docs hoặc repo invariants.
+Read before backend changes:
 
-## Source Of Truth Cho Backend
-
-Đọc tối thiểu trước khi sửa backend:
 - `docs/04-backend-architecture.md`
 - `docs/07-data-model.md`
 - `docs/08-api-realtime-contracts.md`
@@ -17,79 +14,59 @@ File này chỉ được specialize root/domain contracts cho phạm vi backend,
 - `docs/12-folder-structure.md`
 - `docs/14-tech-stack-catalog.md`
 
-Nếu task thuộc execution plan:
-- đọc `docs/plan/foudation/` trước nếu task còn chạm workspace, infra, contracts baseline, hoặc verification baseline
-- đọc `docs/plan/be/README.md` và phase file tương ứng trước khi implement
+If work touches foundation, contracts, infra, or verification baseline, also
+read `docs/plan/foundation/`.
 
-## Trạng Thái Hiện Tại
+## Architecture Rules
 
-- `apps/api` hiện có thể vẫn là Nest starter scaffold
-- package manager hiện tại là `bun`
-- không được phát triển sâu theo scaffold nếu nó đi ngược docs hoặc execution plan
+- Backend follows a NestJS modular monolith.
+- Keep boundaries clear between presentation, application, domain, and
+  infrastructure.
+- Controllers should not own business rules.
+- Realtime is transport/UX support only; HTTP and persisted state are
+  authoritative.
+- PostgreSQL + PostGIS is the source of truth.
 
-## Kiến Trúc Bắt Buộc
+## Hard Invariants
 
-- backend đi theo `NestJS modular monolith`
-- giữ boundary rõ giữa `presentation`, `application`, `domain`, `infrastructure`
-- không nhét business logic vào controller, gateway, guard kỹ thuật, hoặc Prisma query rải rác
+- Auth source is backend-owned session.
+- `/auth/me` is the identity truth for clients.
+- Dev login is valid for `MVP-1`.
+- Firebase phone flow, if added later, is proofing only and must exchange into a
+  backend session.
+- Quotes use versioned pricing policy.
+- Orders snapshot pricing and support idempotent creation.
+- Dispatch is offer-based; baseline candidate selection is radius + freshness +
+  KNN.
+- Concurrent accept must resolve deterministically and leave an audit trail.
 
-Core backend contexts phải bám docs:
-- `auth`
-- `quotes`
-- `orders`
-- `dispatch`
-- `admin`
-- `onboarding`
-- `chat`
-- identity hoặc capability concerns liên quan accounts hoặc drivers
+## Current Foundation State
 
-`realtime` là transport và UX support path, không phải business source of truth riêng.
-
-## Cannot Relax
-
-- auth source là backend-owned session
-- `/auth/me` là identity truth cho client
-- realtime chỉ assistive; HTTP và persisted state là authoritative
-- dispatch baseline là `radius + freshness + KNN`
-- onboarding đi trước chat trong delivery path
-- không đổi business enum/lifecycle/contract khi chưa cập nhật docs
-
-## Invariants Cứng
-
-- auth source là `backend-owned session`
-- `/auth/me` là identity truth cho client
-- `dev login` là baseline hợp lệ cho `MVP-1`
-- Firebase phone flow, nếu có sau này, chỉ là proofing rồi exchange sang backend session
-- quote phải dựa trên pricing policy có version
-- order phải snapshot pricing và hỗ trợ idempotency khi tạo
-- dispatch là offer-based, baseline candidate selection là `radius + freshness + KNN`
-- concurrent accept phải resolve tất định và có audit trail
-- realtime là assistive; HTTP và persisted state mới là authoritative
-- `PostgreSQL + PostGIS` là source of truth
-- `Prisma` là persistence path mặc định; raw SQL chỉ dùng khi có lý do rõ cho geospatial, read model, hoặc performance path
+Health and runtime-smoke endpoints may exist before full domain modules. Do not
+extend starter scaffold as if it were final architecture.
 
 ## Verification
 
-Current-state commands của app:
+Current app commands:
+
 - `bun run lint`
-- `bun run build`
+- `bun run typecheck`
 - `bun run test`
 - `bun run test:e2e`
+- `bun run build`
 
-Quy tắc:
-- thay đổi BE không tầm thường phải chạy `lint`, `build`, `test`
-- chạy `test:e2e` nếu thay đổi ảnh hưởng API flow, bootstrap app, auth, hoặc lifecycle chính
-- nếu thay đổi contract, DTO, status transition, auth, pricing, dispatch, hoặc realtime thì phải đối chiếu docs trước khi kết luận done
-- luôn ghi rõ đang verify theo current-state hay target-state
+Rules:
 
-Khi task backend phụ thuộc foundation, phải nêu rõ dependency đã thỏa trước khi claim runtime completion.
+- Non-trivial backend changes require lint, typecheck, test, and build.
+- Run e2e when API bootstrap, auth, lifecycle, contracts, or main flows change.
+- Contract changes must be checked against docs and `packages/api-client`.
+- State `current-state` or `target-state` in evidence.
 
-## Không Được Làm
+## Prohibited
 
-- không coi Firebase session là canonical app session
-- không đơn giản hóa capability model thành single-role shortcut
-- không để client tự suy diễn quyền hoặc final state mà thiếu backend confirmation
-- không biến realtime thành shortcut bỏ qua persistence
-- không đổi enum, lifecycle, hoặc contract mà không cập nhật docs
-- không kéo worker extraction sớm khi phase chưa yêu cầu
-- không sinh `package-lock.json` hoặc workflow `npm`
+- Do not use Firebase session as canonical app session.
+- Do not collapse the capability model into a single-role shortcut.
+- Do not let clients infer final state without backend confirmation.
+- Do not bypass persistence via realtime.
+- Do not change enum, lifecycle, or contracts without source-doc updates.
+- Do not introduce npm workflows or `package-lock.json`.

@@ -6,23 +6,39 @@
 
 Implement flow driver onboarding application và admin review mà không làm yếu đi auth model hoặc capability model hiện tại.
 
-## Phụ Thuộc
+## In Scope
+
+- chốt onboarding schema và review states
+- implement onboarding submission API
+- implement admin approve/reject review flow
+
+## Dependencies
 
 - `BE-P01-T06`
 - `BE-P01-T04`
 - `BE-P04-T02`
 
-## Ngoài Phạm Vi
+## Out Of Scope
 
 - chat
 - worker extraction
 
-## Điều Kiện Đạt Phase
+## Acceptance Gate
 
-Driver application submission và admin review chạy end-to-end, có audit cho quyết định, và cập nhật capability an toàn.
+- [ ] onboarding submission/review chạy end-to-end
+- [ ] review decisions có audit trail rõ
+- [ ] capability update khi approve an toàn và idempotent
+
+## Task Index
+
+| ID | Type | Verification mode | Depends on | Output |
+|---|---|---|---|---|
+| `BE-P05-T01` | `schema` | `runtime` | `BE-P01-T06`, `BE-P00-T03` | Onboarding schema + review states |
+| `BE-P05-T02` | `api` | `runtime` | `BE-P05-T01`, `BE-P01-T03` | Onboarding submission API |
+| `BE-P05-T03` | `application` | `runtime` | `BE-P05-T02`, `BE-P01-T04` | Admin approve/reject flow + capability update |
 
 <!-- mark-task: BE-P05-T01 -->
-## BE-P05-T01 Chốt driver onboarding schema và review states
+### BE-P05-T01 Chốt driver onboarding schema và review states
 
 - Type: `schema`
 - Verification mode: `runtime`
@@ -36,7 +52,7 @@ Driver application submission và admin review chạy end-to-end, có audit cho 
 - Definition of done: submission/review tasks kế tiếp có thể dùng onboarding persistence semantics hiện tại mà không cần đổi schema nền
 
 <!-- mark-task: BE-P05-T02 -->
-## BE-P05-T02 Implement driver onboarding submission API
+### BE-P05-T02 Implement driver onboarding submission API
 
 - Type: `api`
 - Verification mode: `runtime`
@@ -50,7 +66,7 @@ Driver application submission và admin review chạy end-to-end, có audit cho 
 - Definition of done: onboarding flow có thể chạy qua API contract hiện tại mà không cần thao tác DB thủ công
 
 <!-- mark-task: BE-P05-T03 -->
-## BE-P05-T03 Implement admin review approve và reject flow
+### BE-P05-T03 Implement admin review approve và reject flow
 
 - Type: `application`
 - Verification mode: `runtime`

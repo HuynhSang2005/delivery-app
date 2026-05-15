@@ -1,102 +1,75 @@
-# AGENTS.md
+# docs/plan Agent Contract
 
-## Vai Trò
+This file applies to planning and execution artifacts under `docs/plan`.
 
-File này là contract cho toàn bộ execution planning trong `docs/plan/`.
+## Authority
 
-`docs/plan/` là lớp chuyển source docs thành kế hoạch thực thi có thể claim/verify, không có quyền ghi đè source docs.
+Planning files must follow:
 
-## Scope Và Ownership
+1. Source docs in `docs/`.
+2. Root `AGENTS.md`.
+3. This file.
 
-- `docs/plan/foudation/`:
-	- setup nền dùng chung cho repo (workspace, infra contract, env/tooling baseline, verification baseline).
-- `docs/plan/be/`:
-	- backend execution sau khi dependency từ foundation đã sẵn sàng.
+Plans may decompose approved work, but must not approve new product or
+architecture scope by themselves.
 
-Rule cứng:
-- blocker thuộc workspace/infra/contracts dùng chung -> đưa về foundation.
-- blocker thuộc API/domain/backend runtime -> xử lý trong backend plan.
+## Planning And Beads Boundary
 
-## Naming Strategy
+Use source docs plus `docs/plan/` for:
 
-- terminology chuẩn là `Foundation Plan`.
-- path vật lý hiện tại vẫn là `docs/plan/foudation/` (typo lịch sử).
-- chỉ rename thư mục khi có migration scope riêng và update đồng bộ toàn repo.
+- Plans, tasks, acceptance criteria, and dependency order.
+- Clarifying what should be built and how completion is judged.
 
-## Hybrid Contract: Spec-Kit + Beads
+Use Beads for:
 
-Vai trò tách lớp:
-- Spec-Kit:
-	- định nghĩa planning artifacts (`constitution/spec/plan/tasks`).
-	- dùng cho task decomposition, acceptance criteria, dependency narrative.
-- Beads:
-	- tracking issue lifecycle, claim/close state, blocker graph, execution evidence.
+- Issue lifecycle, claim/close state, blockers, evidence, and follow-up tasks.
 
-Không được:
-- dùng Beads để thay source docs hoặc thay acceptance criteria.
-- close issue khi docs chưa phản ánh scope thực tế.
+Do not:
 
-## Stable ID Policy
+- Use Beads as source docs.
+- Use markdown plans as issue lifecycle state when Beads is tracking execution.
+- Close Beads issues without evidence that matches the verification mode.
 
-Giữ ổn định các marker:
-- `<!-- mark-phase: ... -->`
-- `<!-- mark-task: ... -->`
-- `<!-- mark-check: ... -->`
+## Required Task Metadata
 
-Không đổi stable IDs chỉ để làm đẹp.
+Every executable plan task should make these fields obvious:
 
-## Metadata Bắt Buộc Cho Mỗi Task
+- Scope
+- Inputs
+- Outputs
+- Acceptance criteria
+- Dependencies
+- Verification mode
+- Verification commands or docs QA checks
+- Beads mapping when execution is tracked
 
-Mỗi `mark-task` phải có đầy đủ:
-- `Type`
-- `Verification mode`
-- `Depends on`
-- `Outputs`
-- `Touched paths`
-- `Docs refs`
-- `Verification`
-- `Tests`
-- `Beads`
-- `Definition of done`
+Allowed verification modes:
 
-`Verification mode` chỉ dùng 1 trong 4 giá trị:
 - `docs-only`
 - `current-state`
 - `target-state`
 - `runtime`
 
-## Task Sizing Rules
+## Refactoring Plans
 
-Task đạt chuẩn khi:
-- đúng nguyên tắc `1 task = 1 output có thể verify`
-- title hành động cụ thể, không mơ hồ
-- dependency direct, explicit, không cycle
-- touched paths chính nên giữ gọn (khuyến nghị tối đa 3-5 path chính)
+When refactoring plans:
 
-Không tạo task kiểu:
-- “hoàn thiện auth”
-- “làm mobile app”
-- “tối ưu toàn bộ infra”
+1. Preserve approved phase order and MVP boundaries.
+2. Keep task IDs and Beads mappings stable when possible.
+3. Remove duplicated or superseded planning text.
+4. Recheck `current-state` vs `target-state` wording.
+5. Update source docs first if scope or acceptance changes.
 
-## Close-Evidence Rule (Bắt Buộc)
+## Verification
 
-Issue Beads map từ `mark-task` chỉ được close khi có:
-1. `mark_task_id` khớp 1:1 với docs
-2. `touched_paths_actual`
-3. `verification_commands` + kết quả
-4. test note (`n/a` hoặc danh sách checks)
-5. `drift_check`; nếu drift phải có follow-up issue
+For plan-only changes:
 
-## Verification Khi Refactor Plan
+- Run docs QA for affected files.
+- Check source-doc consistency.
+- Check Beads mapping if task IDs or task boundaries changed.
 
-1. rà dependency graph
-2. rà phase acceptance gates
-3. rà current-state vs target-state wording
-4. rà touched paths để không lấn scope
-5. rà consistency với root/docs AGENTS và source docs
+## Prohibited
 
-## Không Được Làm
-
-- không để backend plan ôm trách nhiệm foundation
-- không để foundation plan ôm feature logic app
-- không dùng terminology khác source docs cho cùng một policy
+- Do not move runtime decisions into plans without ADR/source-doc support.
+- Do not create untracked TODO lists as execution state.
+- Do not change MVP scope by editing plan text only.

@@ -127,7 +127,7 @@ Khi thay đổi một quyết định kỹ thuật lớn, cần rà tối thiể
 - `14-tech-stack-catalog.md`
 - `references.md`
 
-`Foundation Plan (path hiện tại: docs/plan/foudation/)` và `Backend Plan (path: docs/plan/be/)` chỉ được cập nhật sau khi baseline gốc ở các file trên đã ổn định.
+`Foundation Plan (path hiện tại: docs/plan/foundation/)` và `Backend Plan (path: docs/plan/be/)` chỉ được cập nhật sau khi baseline gốc ở các file trên đã ổn định.
 
 ## Quy Ước Cho Workspace Và Testing
 

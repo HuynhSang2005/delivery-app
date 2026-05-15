@@ -3,20 +3,27 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "generate": "openapi-ts -f ../../openapi-ts.config.ts",
-    "check:generated": "bun run generate && git diff --exit-code -- src/generated",
-    "lint": "echo \"No api-client lint yet\"",
-    "test": "echo \"No api-client tests yet\""
+    "check:generated": "node ../../tools/check-generated-idempotent.mjs packages/api-client \"bun run generate\" src/generated",
+    "lint": "bun run typecheck",
+    "test": "bun run build"
   },
   "dependencies": {
-    "@hey-api/client-fetch": "^0.4.2"
+    "@hey-api/client-fetch": "0.13.1"
   },
   "nx": {
-    "tags": ["scope:shared", "type:util", "platform:shared"]
+    "tags": [
+      "scope:shared",
+      "type:util",
+      "platform:shared"
+    ]
   }
 }

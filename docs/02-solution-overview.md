@@ -28,13 +28,14 @@ Giải pháp này được xây quanh bốn trụ cột:
 
 ## Mô Hình Vận Hành Workspace
 
-Repo được tổ chức thành monorepo dùng package-manager workspace + `Nx`.
+Repo được tổ chức thành monorepo dùng `bun` workspaces + `Nx`.
 
 Ý nghĩa:
 
 - `Nx Project Graph` là cách nhìn dependency thật giữa `api`, `admin-web`, `mobile`, `worker`, `packages/*`
 - `Nx targets` là hợp đồng để AI-agent build, test và verify thống nhất
 - `nx affected -t ...` là baseline cho CI
+- `bun` là package manager baseline cho toàn bộ workspace; không quay lại `npm`
 - tags và module boundaries là cơ chế bảo vệ kiến trúc, không chỉ là guideline
 
 ## Hình Dạng Sản Phẩm
@@ -84,6 +85,7 @@ Thành phần chính:
 
 | Chủ đề | Quyết định baseline | Ghi chú |
 | --- | --- | --- |
+| Package manager | `bun` | dùng workspaces trong `package.json`; không dùng `npm` workflow |
 | Monorepo | `Nx` | không dùng Turborepo làm core |
 | Backend | NestJS modular monolith | feature-first, layered modules |
 | ORM | Prisma v7 + PostgreSQL driver adapter | raw SQL chỉ cho geo/read nâng cao |
@@ -113,6 +115,12 @@ Thành phần chính:
 
 - driver không “tự lướt marketplace”
 - backend chủ động offer theo candidate ranking
+
+### 3.5 Worker-readiness boundary
+
+- `MVP-1` giữ dispatch runtime trong `apps/api`; `apps/worker` chỉ bật khi có async workload thực sự
+- Redis usage phải bám profile governance: `redis` cho runtime queue/cache path, `debug` cho tooling debug, `jobs` cho maintenance jobs
+- bật worker không được đổi source-of-truth: HTTP/API và database vẫn authoritative
 
 ### 4. Admin là công cụ điều tra
 

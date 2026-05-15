@@ -6,39 +6,60 @@
 
 Map `apps/api` vào foundation baseline đã có sẵn để các phase sau có thể implement trong một setup Nx, NestJS, Prisma, và OpenAPI nhất quán mà không phải bootstrap lại workspace toàn repo.
 
-## Phụ Thuộc
+## In Scope
+
+- map execution baseline cho `apps/api` trên foundation scaffold
+- chốt module map và boundary skeleton backend
+- khóa Prisma baseline và migration policy
+- chốt OpenAPI contract generation baseline
+- chốt backend testing harness baseline
+
+## Dependencies
 
 - `FDN-P00`
 - `FDN-P01`
 - `FDN-P02`
+- `FDN-R01`
 - active docs `01`, `04`, `10`, `11`, `12`, `14`
 
-## Ngoài Phạm Vi
+## Out Of Scope
 
 - auth flow cho end-user
 - pricing hoặc order business logic
 - dispatch hoặc chat
 
-## Điều Kiện Đạt Phase
+## Acceptance Gate
 
-API project có thể boot ở mức baseline đủ test trên workspace đã scaffold, có boundary, Prisma baseline, OpenAPI baseline, và verification targets rõ ràng.
+- [ ] `apps/api` có execution baseline rõ trên workspace hiện tại
+- [ ] module/prisma/openapi/testing baselines nhất quán với source docs
+- [ ] không còn ambiguity giữa command path current-state và target-state
+
+## Task Index
+
+| ID | Type | Verification mode | Depends on | Output |
+|---|---|---|---|---|
+| `BE-P00-T01` | `foundation` | `docs-only` | `FDN-P00-T02`, `FDN-P00-T04`, `FDN-P02-T01`, `FDN-P02-T04` | API execution baseline mapping |
+| `BE-P00-T02` | `foundation` | `docs-only` | `BE-P00-T01` | Backend module map + boundary skeleton |
+| `BE-P00-T03` | `schema` | `docs-only` | `FDN-P01-T01`, `FDN-P01-T02`, `FDN-P01-T03`, `BE-P00-T01` | Prisma baseline + migration policy |
+| `BE-P00-T04` | `api` | `docs-only` | `FDN-P02-T03`, `BE-P00-T01` | OpenAPI + contract generation baseline |
+| `BE-P00-T05` | `test` | `docs-only` | `FDN-P00-T04`, `FDN-P02-T04`, `BE-P00-T01`, `BE-P00-T03`, `BE-P00-T04` | Backend testing harness baseline |
 
 <!-- mark-task: BE-P00-T01 -->
-## BE-P00-T01 Map execution baseline của API vào workspace đã được foundation scaffold
+### BE-P00-T01 Map execution baseline của API vào workspace đã được foundation scaffold
 
 - Type: `foundation`
 - Verification mode: `docs-only`
 - Depends on: `FDN-P00-T02`, `FDN-P00-T04`, `FDN-P02-T01`, `FDN-P02-T04`
 - Outputs: execution notes cho `apps/api`, current-state fallback commands, target naming, environment contract, và command matrix theo Nx
-- Touched paths: `docs/plan/be/*`, `docs/plan/foudation/*`, `AGENTS.md`, `apps/api/AGENTS.md`
+- Touched paths: `docs/plan/be/*`, `docs/plan/foundation/*`, `AGENTS.md`, `apps/api/AGENTS.md`
 - Docs refs: `docs/12-folder-structure.md`, `docs/14-tech-stack-catalog.md`
 - Verification: `apps/api/AGENTS.md`, runbook và plan docs đã ghi rõ command matrix current-state/target-state cho backend mà không mâu thuẫn
-- Tests: n/a, docs-only
+- Tests: n/a (docs-only)
 - Beads: `type=task`, `labels=be,phase:p00,foundation`
 - Definition of done: BE-P00-T02+ có thể bắt đầu mà không cần định nghĩa lại execution commands hoặc workspace assumptions cho `apps/api`
 
 <!-- mark-task: BE-P00-T02 -->
-## BE-P00-T02 Chốt module map và boundary skeleton cho backend
+### BE-P00-T02 Chốt module map và boundary skeleton cho backend
 
 - Type: `foundation`
 - Verification mode: `docs-only`
@@ -47,12 +68,12 @@ API project có thể boot ở mức baseline đủ test trên workspace đã sc
 - Touched paths: `docs/plan/be/phase-00-workspace-api-foundation.md`, `apps/api/AGENTS.md`
 - Docs refs: `docs/04-backend-architecture.md`, `docs/12-folder-structure.md`
 - Verification: module map đã liệt kê bounded contexts chính và layer boundaries nhất quán với `docs/04-backend-architecture.md`
-- Tests: n/a, docs-only
+- Tests: n/a (docs-only)
 - Beads: `type=task`, `labels=be,phase:p00,architecture`
 - Definition of done: BE-P01 tasks có thể scaffold module structure theo map hiện có mà không phát sinh rule kiến trúc mới
 
 <!-- mark-task: BE-P00-T03 -->
-## BE-P00-T03 Khóa Prisma baseline và migration policy
+### BE-P00-T03 Khóa Prisma baseline và migration policy
 
 - Type: `schema`
 - Verification mode: `docs-only`
@@ -66,7 +87,7 @@ API project có thể boot ở mức baseline đủ test trên workspace đã sc
 - Definition of done: BE-P01/BE-P02 schema tasks có thể dùng cùng migration/query policy mà không phải mở policy task mới
 
 <!-- mark-task: BE-P00-T04 -->
-## BE-P00-T04 Chốt baseline cho OpenAPI và contract generation
+### BE-P00-T04 Chốt baseline cho OpenAPI và contract generation
 
 - Type: `api`
 - Verification mode: `docs-only`
@@ -80,7 +101,7 @@ API project có thể boot ở mức baseline đủ test trên workspace đã sc
 - Definition of done: API tasks BE-P01+ có thể tham chiếu cùng contract workflow mà không tạo biến thể generation riêng
 
 <!-- mark-task: BE-P00-T05 -->
-## BE-P00-T05 Chốt backend testing harness baseline
+### BE-P00-T05 Chốt backend testing harness baseline
 
 - Type: `test`
 - Verification mode: `docs-only`
@@ -89,7 +110,7 @@ API project có thể boot ở mức baseline đủ test trên workspace đã sc
 - Touched paths: `docs/plan/be/03-testing-quality-gates.md`, `apps/api/AGENTS.md`
 - Docs refs: `docs/10-testing-roadmap-risk.md`
 - Verification: testing plan đã map rõ nhóm test (unit/integration/api/contract/smoke) theo roadmap phases và bounded contexts
-- Tests: docs-only
+- Tests: n/a (docs-only)
 - Beads: `type=task`, `labels=be,phase:p00,testing`
 - Definition of done: BE-P01+ tasks có thể khai báo test strategy từ baseline hiện có mà không cần định nghĩa quality model mới
 

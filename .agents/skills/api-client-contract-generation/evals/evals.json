@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill": "api-client-contract-generation",
+  "cases": [
+    {
+      "name": "openapi-client-sync",
+      "prompt": "API response changed and packages/api-client generated files changed.",
+      "expected": [
+        "treats apps/api OpenAPI export as source of truth",
+        "does not hand-edit generated files as the real fix",
+        "runs contract export/generate/check and shared smoke"
+      ]
+    }
+  ]
+}

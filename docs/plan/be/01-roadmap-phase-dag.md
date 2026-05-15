@@ -2,7 +2,7 @@
 
 ## Roadmap
 
-Điểm bắt đầu của roadmap này là sau khi `Foundation Plan (path hiện tại: docs/plan/foudation/)` đã đạt acceptance gate cho workspace bootstrap, local infra, app shells, và verification baseline dùng chung.
+Điểm bắt đầu của roadmap này là sau khi `Foundation Plan (path hiện tại: docs/plan/foundation/)` đã đạt acceptance gate cho workspace bootstrap, local infra, app shells, và verification baseline dùng chung.
 
 <!-- mark-phase: BE-P00 -->
 ### BE-P00 API Baseline Adaptation Sau Foundation
@@ -91,6 +91,18 @@ flowchart TD
 - `P05` được đặt sau `P03` theo product priority, dù về mặt domain thì onboarding cũng liên quan đến driver.
 - `P06` để cuối vì chat và worker extraction là phần đi sau baseline dispatch và realtime.
 
+## Quy Tắc Chia Nhỏ Task Trong Backend Plan
+
+- mỗi task chỉ mang một thay đổi có thể verify rõ ở mức contract/schema/runtime
+- không gộp nhiều bounded contexts trong một task trừ khi đó là integration gate bắt buộc
+- tách rõ task docs-only với task runtime để evidence không bị mơ hồ
+- ưu tiên task nhỏ theo các nhóm: schema, API contract, application logic, realtime, read-model, tests
+- task nào cần migration/fixtures phải nêu dependency explicit
+
+Heuristic cân bằng khối lượng:
+- phase nào nhiều rủi ro runtime nên có task nhỏ hơn và verification dày hơn
+- phase nào thiên docs/contracts thì giữ docs-only/current-state rõ ràng, không gắn runtime checks giả tạo
+
 ## Acceptance Gate Theo Phase
 
 - `P00`:
@@ -116,3 +128,10 @@ flowchart TD
 - `P06`:
   - chat contracts và worker extraction plan không phá vỡ các contract phase trước
   - smoke/hardening checklist đã phủ tối thiểu health, auth, quote, order, dispatch, admin read flows
+
+## Gate Chuyển Phase
+
+Một phase chỉ được mở khi:
+- dependencies direct của phase trước đã close với evidence hợp lệ
+- quality gate của phase trước đã pass
+- không còn blocker mở liên quan source docs hoặc ownership boundary

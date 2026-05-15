@@ -4,6 +4,8 @@
 
 Phân tích các lựa chọn hạ tầng phù hợp với dự án và chốt phương án self-host khi thật sự cần public hosted demo.
 
+Contract hạ tầng hiện tại dùng một source of truth cho local/runtime bootstrap: `docker-compose.yml` tại root repo, với root `.env.example` làm template và root `.env` cho local values.
+
 ## Trạng Thái
 
 `Local-first` là baseline của `CV-ready MVP-1`. Self-host trên một VPS là phương án đã chấp thuận cho giai đoạn public demo, không phải điều kiện bắt buộc từ ngày đầu.
@@ -41,6 +43,11 @@ Nhược điểm:
 
 - single point of failure
 - scale chủ yếu theo chiều dọc
+
+Ghi chú vận hành:
+
+- giữ topology file ở một vị trí duy nhất để giảm drift giữa local, CI fallback và self-host runbook
+- profile strategy dùng để bật/tắt service phụ trợ (ví dụ Redis debug/job) thay vì nhân đôi compose files
 
 ### Phương án C: ghép nhiều PaaS managed service
 
@@ -218,12 +225,37 @@ Không được:
 - backup phải nằm ngoài container lifecycle
 - restore drill phải được chạy ít nhất một lần trước khi coi hosted demo là đáng tin
 
+Restore drill checklist (minimum):
+
+1. chạy `bun run job:db-backup` và xác nhận artifact backup tồn tại
+2. chạy `bun run db:restore` để phục hồi schema/data baseline
+3. chạy `bun run db:smoke` để xác nhận dataset và extension vẫn hợp lệ
+
+Cadence/retention/location baseline:
+
+- cadence: backup trước mỗi public demo và ít nhất weekly
+- retention: giữ ít nhất 7 backup gần nhất ở local/self-host drill path
+- location: backup primary ở `db_backups` volume; trước demo production phải copy thêm ra storage ngoài vòng đời container
+
 Deterministic drill baseline:
 
 - `bun run db:migrate`
 - `bun run db:seed`
 - `bun run db:smoke`
 - `bun run db:reset`
+
+## Foundation Infra Coverage Anchor (R04-T08)
+
+| Infra baseline | Owner task (foundation) | Verification path | Risk note | Defer reason |
+| --- | --- | --- | --- | --- |
+| Docker Compose single-source topology | `FDN-R02-T04`, `FDN-R04-T08` | `bun run db:up`, `bun run db:down`, `bun run db:ps` | drift giữa local/self-host dễ làm docs và runtime lệch nhau | multi-file compose topology defer để giữ local-first đơn giản |
+| Redis profile governance (`redis`/`debug`/`jobs`) | `FDN-R02-T04`, `FDN-R04-T08` | `bun run db:up:redis`, `bun run db:up:debug`, `bun run job:db-backup` | Redis bị bật mặc định hoặc dùng sai vai trò source-of-truth | Redis optional ở baseline; worker path chỉ bật theo phase |
+| Backup/restore continuity | `FDN-R03-T02` | `bun run db:drill:backup-restore`, `bun run db:restore`, `bun run db:smoke` | backup policy không có restore drill tạo false confidence | automation nâng cao defer tới giai đoạn self-host hardening |
+| Public demo edge routing (`/admin`, `/api`) | `FDN-R03-T01`, `FDN-R04-T08` | release flow + smoke path trong `docs/09` và `bun run release:smoke` | `basePath` sai làm routing đúng ở local nhưng hỏng trên edge | production multi-node ingress defer cho phase sau |
+
+Rule:
+
+- infra baseline nào chưa map được owner task + verification path phải xử lý trước khi claim release-ready.
 
 ## Kết Luận
 

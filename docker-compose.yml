@@ -29,7 +29,16 @@ services:
     image: redis:${REDIS_IMAGE_TAG:-7-alpine}
     restart: unless-stopped
     profiles: ["redis", "worker", "jobs"]
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "allkeys-lru"]
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory",
+        "${REDIS_MAXMEMORY:-0}",
+        "--maxmemory-policy",
+        "${REDIS_MAXMEMORY_POLICY:-noeviction}",
+      ]
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -48,7 +57,7 @@ services:
     restart: unless-stopped
     profiles: ["debug"]
     environment:
-      REDIS_HOSTS: local:redis:${REDIS_PORT:-6379}
+      REDIS_HOSTS: local:redis:6379
       HTTP_USER: ${REDIS_COMMANDER_USER:-admin}
       HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-admin}
     ports:

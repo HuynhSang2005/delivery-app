@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill": "delivery-app-foundation-review",
+  "cases": [
+    {
+      "name": "foundation-audit-scope",
+      "prompt": "Audit delivery-app foundation quality without redesigning database or business workflows.",
+      "expected": [
+        "classifies scope as foundation/base",
+        "checks AGENTS/docs/Nx/Bun/local infra/testing/client contracts",
+        "does not propose business workflow redesign"
+      ]
+    }
+  ]
+}

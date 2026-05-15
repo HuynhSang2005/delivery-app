@@ -1,0 +1,83 @@
+{
+  "name": "admin-web",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/admin-web",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/admin-web dev"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/run-admin-build-clean-env.mjs"
+      },
+      "cache": true,
+      "dependsOn": [
+        "typecheck",
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ]
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/admin-web start"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/admin-web lint"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^lint"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/admin-web typecheck"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^typecheck"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/admin-web test"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^test"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/admin-web e2e"
+      }
+    }
+  }
+}

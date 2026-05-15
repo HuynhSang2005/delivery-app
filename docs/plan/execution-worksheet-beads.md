@@ -7,7 +7,7 @@ Worksheet này là template vận hành cho dev + AI-agent khi làm việc với
 - `docs/plan/AGENTS.md`
 - `docs/plan/governance/phase-task-standard.md`
 - `docs/plan/governance/execution-checklist.md`
-- `docs/plan/foudation/README.md`
+- `docs/plan/foundation/README.md`
 - `docs/plan/be/README.md`
 
 ## Quick Flow

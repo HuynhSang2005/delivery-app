@@ -1,85 +1,80 @@
-﻿# Operations Handbook (Spec-Kit + Beads)
+# Operations Handbook
 
-## 1) Mục đích
+## Purpose
 
-Tài liệu này là handbook vận hành chính cho solo dev và AI-agent trong phạm vi docs/plan.
-Mục tiêu:
-- giữ planning và execution tracking tách rõ ràng
-- giảm scope drift
-- đảm bảo context và memory được giữ qua nhiều session
+This handbook defines the lightweight operating model for solo development and
+AI-agent execution in `docs/plan`.
 
-## 2) Trách nhiệm theo lớp
+Goals:
 
-- Source of truth: docs gốc, ADRs, và AGENTS contracts.
-- Planning layer: Spec-Kit artifacts (`spec`, `plan`, `tasks`).
-- Execution tracking layer: Beads issue graph (`ready`, `claim`, `close`, blocker deps).
+- keep source docs, execution plans, and issue lifecycle separate
+- reduce scope drift
+- keep evidence available across sessions
 
-Quy tắc bắt buộc:
-- Không dùng Beads để thay docs hoặc Spec-Kit artifacts.
-- Không dùng Spec-Kit để thay issue lifecycle runtime.
+## Responsibility Layers
 
-## 3) SOP đầu phiên làm việc
+- Source of truth: numbered docs, `docs/references.md`, ADRs, and AGENTS
+  contracts.
+- Planning layer: `docs/plan/**` phase docs, task metadata, dependency order,
+  and acceptance criteria.
+- Execution tracking layer: Beads issue graph (`ready`, `claim`, `close`,
+  blocker dependencies, and evidence).
 
-1. Đọc context theo scope:
-   - root AGENTS
-   - AGENTS local gần file đang sửa
-   - source-of-truth docs liên quan
-2. Chạy health check và nạp context Beads:
-   - `bd doctor`
-   - `bd prime`
-3. Nếu cần restore state trên máy mới:
-   - `bd backup fetch-git --branch beads-backup --remote origin`
-4. Lấy task sẵn sàng:
-   - `bd ready --json`
+Rules:
 
-## 4) Vòng lặp thực thi chuẩn
+- Do not use Beads to replace docs or plans.
+- Do not use markdown files as issue lifecycle state when Beads is tracking the
+  work.
+- Do not add heavyweight planning scaffolds unless source docs explicitly
+  approve them.
 
-1. Làm rõ cần build gì:
-   - dùng Spec-Kit (`specify -> plan -> tasks`) hoặc cập nhật docs/plan tương ứng
-2. Xác nhận task đủ điều kiện:
-   - metadata đầy đủ
-   - dependency rõ ràng
-   - verification mode rõ ràng
-3. Claim task 1:1:
-   - `bd update <id> --claim --json`
-4. Thực thi một task tại một thời điểm:
-   - giữ touched paths đúng scope task
-5. Verify đúng mode:
-   - `docs-only`, `current-state`, `target-state`, `runtime`
-6. Ghi evidence vào issue:
-   - touched paths actual
-   - verification commands + kết quả
-   - test notes
-   - drift check
-7. Close issue:
-   - `bd close <id> --reason "Completed" --json`
+## Session SOP
 
-## 5) Ma trận quyết định: Spec-Kit hay Beads
+1. Read the root AGENTS file, nearest AGENTS file, and source docs for the
+   touched scope.
+2. Run `bd prime --json` when Beads state is relevant.
+3. Check ready work with `bd ready --json` or create one focused task for the
+   current execution.
+4. Claim before implementation with `bd update <id> --claim --json`.
 
-Dùng Spec-Kit khi câu hỏi là:
-- cần build cái gì
-- acceptance criteria nào
-- tách task ra sao
-- dependency graph planning như thế nào
+## Execution Loop
 
-Dùng Beads khi câu hỏi là:
-- task nào ready để làm
-- task nào đang block
-- đã claim chưa
-- close đã đủ evidence chưa
+1. Confirm the scope and verification mode.
+2. Execute one bounded task at a time.
+3. Keep touched paths aligned with the task.
+4. Run the verification command for the selected mode.
+5. Record touched paths, commands, results, and drift notes in Beads.
+6. Close only when evidence matches the task definition of done.
 
-## 6) Stable ID rules
+## Decision Matrix
+
+Use source docs and `docs/plan/` when the question is:
+
+- what should be built
+- what the acceptance criteria are
+- what order work should follow
+- what is in or out of scope
+
+Use Beads when the question is:
+
+- which task is ready
+- which task is blocked
+- who claimed the task
+- whether close evidence exists
+
+## Stable ID Rules
 
 - Phase marker: `<!-- mark-phase: XXX -->`
 - Task marker: `<!-- mark-task: XXX -->`
 - Check marker: `<!-- mark-check: XXX -->`
 
-Không đổi stable IDs chỉ để làm đẹp.
-Nếu bắt buộc đổi, phải có migration note và mapping cũ -> mới.
+Do not rename stable IDs for cleanup only. If an ID must change, record the old
+to new mapping in the affected plan file.
 
-## 7) Metadata bắt buộc cho task
+## Required Task Metadata
 
-Mỗi task phải có đủ:
+Each executable task should state:
+
 - `Type`
 - `Verification mode`
 - `Depends on`
@@ -91,165 +86,24 @@ Mỗi task phải có đủ:
 - `Beads`
 - `Definition of done`
 
-Không đủ metadata thì chưa đủ điều kiện claim.
-
-## 8) Verification mode hợp lệ
+## Verification Modes
 
 - `docs-only`
 - `current-state`
 - `target-state`
 - `runtime`
 
-## 9) Task granularity guardrails
+## Review Checklist
 
-Task đạt chuẩn khi:
-- đúng nguyên tắc `1 task = 1 output verify được`
-- title là hành động cụ thể
-- touched paths không trải rộng không liên quan
+- metadata is complete
+- dependency graph has no cycles
+- verification mode is explicit
+- task title has a concrete output
+- Beads close evidence exists for tracked execution
 
-Heuristic khuyến nghị:
-- touched paths chính: tối đa 3-5
-- direct dependencies: tối đa 4
-- không gộp nhiều domain trong một task
+## End-Of-Session SOP
 
-Nếu vượt ngưỡng, tách task thành các task con.
-
-## 10) Forbidden vague task titles
-
-Không dùng title mơ hồ:
-- "hoàn thiện X"
-- "tối ưu toàn bộ Y"
-- "dựng hệ thống Z"
-
-Nên dùng title có output rõ:
-- "Add session issuance for dev login endpoint"
-- "Define deterministic geo fixtures for dispatch smoke"
-
-## 11) Dependency rules
-
-- Chỉ khai báo direct dependency.
-- Không để dependency implicit.
-- Không để dependency cycle.
-
-Nếu task bị block bởi việc mới:
-- tạo issue mới với `discovered-from:<parent-id>`
-- cập nhật docs nếu có scope drift
-
-## 12) Beads mapping rules
-
-- Mỗi `mark-task` map 1:1 sang issue `type=task`.
-- Issue cần fields:
-  - `mark_task_id`
-  - `verification_mode`
-  - `depends_on`
-  - `touched_paths_expected`
-  - `docs_refs`
-  - `definition_of_done`
-
-Close issue chỉ khi có:
-- `touched_paths_actual`
-- `verification_commands` + kết quả
-- test notes
-- drift check (và follow-up issue nếu cần)
-
-## 13) Discovered-work protocol
-
-Nếu phát sinh việc mới ngoài scope task đang claim:
-1. Không nhét vào issue hiện tại.
-2. Tạo issue mới với dependency: `discovered-from:<parent-id>`.
-3. Nếu việc mới đổi scope hoặc acceptance docs, cập nhật docs trước.
-4. Tiếp tục issue hiện tại đúng với DoD ban đầu.
-
-## 14) Claim/Close gate tối thiểu
-
-Trước khi claim:
-- đã map đúng `mark-task` -> issue `type=task`
-- issue có `verification_mode`, `depends_on`, `touched_paths_expected`, `docs_refs`, `definition_of_done`
-
-Trước khi close:
-- có `touched_paths_actual`
-- có `verification_commands` + kết quả
-- có test note (`n/a` hoặc danh sách checks)
-- có drift check; nếu drift thì có follow-up issue
-
-## 15) Phase authoring template
-
-Dùng khung tối thiểu sau:
-1. Mục tiêu
-2. Phụ thuộc
-3. Ngoài phạm vi
-4. Điều kiện đạt phase
-5. danh sách mark-task
-6. mini checklist pass/fail cho từng task
-
-## 16) Task template
-
-```md
-<!-- mark-task: XXX-T01 -->
-## XXX-T01 <Action-oriented title>
-
-- Type: `<type>`
-- Verification mode: `<docs-only|current-state|target-state|runtime>`
-- Depends on: `<task ids | none>`
-- Outputs: `<single verifyable output>`
-- Touched paths: `<main paths>`
-- Docs refs: `<source docs>`
-- Verification: `<how to verify>`
-- Tests: `<n/a | checks>`
-- Beads: `type=task`, `labels=...`
-- Definition of done: `<explicit close condition>`
-```
-
-## 17) Review checklist trước khi merge
-
-- metadata đủ 100%
-- granularity đạt guardrails
-- dependency không cycle
-- verification mode hợp lệ
-- map 1:1 với Beads issue
-- không có wording mơ hồ gây scope drift
-
-## 18) SOP cuối phiên
-
-1. Close các task đã đạt DoD.
-2. Đồng bộ code:
-   - `git pull --rebase origin main`
-   - `git push origin main`
-3. Backup Beads snapshot:
-   - `bd backup export-git --branch beads-backup --remote origin`
-4. Health check cuối:
-   - `bd doctor`
-
-## 19) SOP khôi phục (xóa local và clone lại)
-
-1. Clone repo.
-2. Re-init Beads:
-   - `bd init --skip-agents --skip-hooks -p delivery-app`
-   - `bd hooks install`
-3. Restore backup snapshot:
-   - `bd backup fetch-git --branch beads-backup --remote origin`
-4. Verify:
-   - `bd doctor`
-   - `bd list --status=open --json`
-
-## 20) Quality anti-patterns cần tránh
-
-- issue đã close nhưng không có evidence theo verification mode
-- task title mơ hồ kiểu "hoàn thiện", "tối ưu toàn bộ"
-- task gom nhiều output độc lập trong cùng một issue
-- cập nhật issue graph trước khi cập nhật docs khi có scope drift
-
-## 21) IDE-safe terminal profile
-
-Để tránh treo VS Code khi chạy agent trên repo docs lớn:
-
-- Ưu tiên query có scope hẹp theo thư mục hoặc file cụ thể; tránh quét recursive toàn repo nếu không cần.
-- Tránh command tạo output quá lớn trong một lần chạy; chia nhỏ theo cụm file và giới hạn số dòng kết quả.
-- Ưu tiên công cụ search có include pattern rõ ràng thay vì dump nội dung toàn bộ.
-- Khi cần kiểm tra diện rộng, chạy theo lô nhỏ và xác nhận từng lô trước khi tiếp tục.
-
-## 22) Tài liệu liên quan
-
-- `docs/plan/AGENTS.md`
-- `docs/plan/governance/execution-checklist.md`
-- `docs/plan/archive/spec-kit-beads-refactor-program.md`
+1. Update Beads notes for tasks that were touched.
+2. Close only tasks with evidence.
+3. Run final verification or record the blocker.
+4. Attempt Beads backup export when network access is available.

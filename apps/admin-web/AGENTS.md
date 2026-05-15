@@ -1,62 +1,59 @@
-# AGENTS.md
+# apps/admin-web Agent Contract
 
-## Vai Trò
+This file applies to admin web work under `apps/admin-web`.
 
-File này là contract cho mọi công việc trong `apps/admin-web`.
+## Source Of Truth
 
-File này chỉ được specialize root/domain contracts cho phạm vi admin web, không được override source docs hoặc repo invariants.
+Read before admin-web changes:
 
-## Source Of Truth Cho Admin Web
-
-Đọc tối thiểu trước khi sửa:
-- `docs/06-admin-web-architecture.md`
+- `docs/05-frontend-mobile-architecture.md`
+- `docs/06-admin-ops.md`
 - `docs/08-api-realtime-contracts.md`
 - `docs/10-testing-roadmap-risk.md`
+- `docs/11-adrs.md`
 - `docs/12-folder-structure.md`
 - `docs/14-tech-stack-catalog.md`
 
-Nếu task còn chạm app shell, workspace, contract generation path, hoặc repo verification baseline thì đọc thêm `docs/plan/foudation/`.
+If work touches app shell, workspace targets, contract generation, or repo
+verification, also read `docs/plan/foundation/`.
 
-## Trạng Thái Hiện Tại
+## Runtime Rules
 
-- `apps/admin-web` hiện có thể vẫn là Next starter scaffold
-- package manager hiện tại là `bun`
-- không được suy diễn feature scope hoặc data flow cuối cùng chỉ từ starter code
+- Admin web is an operations surface, not a marketing site.
+- Use `packages/api-client` as the canonical HTTP client path.
+- HTTP state is authoritative. Realtime may assist UX but must not be the only
+  truth.
+- Keep pages dense, readable, and operational.
+- Do not infer final feature scope from starter code.
 
-## Kiến Trúc Bắt Buộc
+## Next.js Rules
 
-- admin web là công cụ vận hành nội bộ, không phải marketing dashboard
-- dùng `Next.js App Router`
-- HTTP gọi qua generated client là đường chính thức
-- server state và cache không phải source of truth cuối cùng; realtime chỉ dùng để refresh hoặc invalidate nhanh
-- admin capability phải được enforce ở backend lẫn UI guard
-- không che dữ liệu backend còn thiếu bằng cách suy diễn business state ở frontend
-- nếu deploy dưới subpath `/admin`, `basePath` phải được phản ánh ở build-time
-
-## Cannot Relax
-
-- admin web là công cụ vận hành, không phải business rule source
-- backend mới là nơi enforce capability và lifecycle chính thức
-- realtime event không được xem là final truth
-- không mở mutation scope mới nếu docs chưa chốt
+- Use Next.js official docs through Next DevTools MCP for Next.js-specific
+  implementation questions.
+- Local workspace packages that need transpilation must be listed in
+  `transpilePackages`.
+- Production build mode must be explicit and consistent across Nx and e2e
+  paths.
 
 ## Verification
 
-Current-state commands của app:
+Current app commands:
+
 - `bun run lint`
+- `bun run typecheck`
+- `bun run test`
+- `bun run test:e2e`
 - `bun run build`
-- `bun run dev`
 
-Quy tắc:
-- ít nhất chạy `bun run lint` và `bun run build` cho thay đổi không tầm thường
-- nếu thay đổi làm lệch data contracts hoặc auth assumptions, đối chiếu lại docs trước khi claim done
-- luôn ghi rõ đang verify theo current-state hay target-state
+Rules:
 
-Nếu task chạm foundation assumptions (contract path, shared package, CI baseline), phải xác nhận dependency đã thỏa trước khi close.
+- UI/runtime changes require lint, typecheck, tests, and build.
+- User-visible or route-level changes require e2e.
+- State `current-state` or `target-state` in evidence.
 
-## Không Được Làm
+## Prohibited
 
-- không đặt business invariants cốt lõi ở admin web thay vì backend
-- không để realtime event thành nguồn sự thật cuối cùng
-- không thêm admin mutation mới như thể đã approved nếu docs gốc chưa chốt
-- không copy logic từ backend sang frontend để “vá” dữ liệu thiếu
+- Do not add unauthenticated admin mutation flows without source-doc updates.
+- Do not create local-only state as the source of business truth.
+- Do not bypass generated API client for typed backend calls.
+- Do not introduce npm workflows or `package-lock.json`.
