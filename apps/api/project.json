@@ -1,0 +1,76 @@
+{
+  "name": "api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/api build"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ]
+    },
+    "start:dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/api start:dev"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/api lint"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^lint"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/api typecheck"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^typecheck"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/api test"
+      },
+      "cache": true,
+      "dependsOn": [
+        "^test"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run --cwd apps/api e2e"
+      }
+    }
+  }
+}

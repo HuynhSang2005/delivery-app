@@ -1,0 +1,22 @@
+# Default: normalize text files to LF for cross-platform consistency
+* text=auto eol=lf
+
+# Windows-native scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Generated artifacts used in contract checks should stay LF
+packages/api-client/src/generated/** text eol=lf
+packages/api-client/openapi/*.json text eol=lf
+
+# Common source/config files remain LF
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf

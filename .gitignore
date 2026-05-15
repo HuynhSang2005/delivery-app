@@ -1,27 +1,37 @@
-# Environment files
-.env
-.env.local
-.env.*.local
-
 # Dependencies
 node_modules/
-dist/
+apps/*/bun.lock
+packages/*/bun.lock
+tools/*/bun.lock
 
-# Next.js
+# Build outputs and caches
+dist/
+build/
+coverage/
 .next/
 out/
-
-# React Native / Expo
-build/
 .expo/
 .expo-shared/
-
-# Build & coverage
-coverage/
 .turbo/
 .nx/
 
-# IDE
+# Logs and diagnostics
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Environment and secrets
+.env
+.env.local
+.env.*
+!.env.example
+!.env*.example
+
+# IDE and editor
 .vscode/
 .idea/
 *.swp
@@ -32,11 +42,14 @@ coverage/
 .DS_Store
 Thumbs.db
 
-#
+# Local tooling
 .sisyphus
 
-# Beads / Dolt files (added by bd init)
+# Beads and local Dolt state
 .dolt/
 *.db
 .beads-credential-key
 .beads/
+
+.claude/worktrees
+.claude/settings.local.json

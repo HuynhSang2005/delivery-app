@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const REQUIRED_SCRIPT_TARGETS = ['build', 'typecheck', 'lint', 'test'];
@@ -7,6 +8,42 @@ const CRITICAL_PROJECTS = new Set(['api-client', 'shared-kernel', 'api', 'admin-
 const FORBIDDEN_FOUNDATION_PATHS = ['.specify'];
 const FORBIDDEN_SKILL_PREFIXES = ['speckit-'];
 const ADMIN_WEB_PROJECT = 'admin-web';
+const MAX_SKILL_MD_LINES = 500;
+const CRITICAL_SKILLS_WITH_EVALS = new Set([
+  'delivery-app-foundation-review',
+  'nestjs-backend-runtime',
+  'docker-compose-local-infra',
+  'bullmq-worker-queue',
+  'api-client-contract-generation',
+  'workspace-conformance',
+]);
+const FORBIDDEN_SKILL_PATTERNS = [
+  {
+    code: 'skill-forbidden-package-manager',
+    pattern: /\bnpm\s+install\s+-g\b/i,
+    reason: 'global npm installs conflict with the Bun/local-first baseline',
+  },
+  {
+    code: 'skill-forbidden-package-manager',
+    pattern: /\byarn\s+android\b/i,
+    reason: 'yarn mobile workflows conflict with the Bun/Nx baseline',
+  },
+  {
+    code: 'skill-forbidden-package-manager',
+    pattern: /\bpnpm\s+workspaces?\b/i,
+    reason: 'pnpm workspace guidance conflicts with the Bun/Nx baseline',
+  },
+  {
+    code: 'skill-outdated-nextjs',
+    pattern: /Next\.js\s+16\.2\s+is\s+currently\s+in\s+canary/i,
+    reason: 'Next.js facts must be verified from official docs instead of frozen canary notes',
+  },
+  {
+    code: 'skill-placeholder',
+    pattern: /Add (advanced )?example content here|placeholder for detailed reference/i,
+    reason: 'skills must not contain unfinished placeholder content',
+  },
+];
 const EXPECTED_PROJECT_TAGS = {
   api: ['scope:api', 'type:app', 'platform:server'],
   'admin-web': ['scope:admin', 'type:app', 'platform:web'],
@@ -265,6 +302,187 @@ function findForbiddenFoundationArtifacts() {
   return violations;
 }
 
+function readSkillFrontmatter(content) {
+  if (!content.startsWith('---')) {
+    return null;
+  }
+
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) {
+    return null;
+  }
+
+  const frontmatter = {};
+  const lines = match[1].split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const fieldMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!fieldMatch) {
+      continue;
+    }
+
+    const key = fieldMatch[1];
+    const value = fieldMatch[2].replace(/^['"]|['"]$/g, '').trim();
+    if (value) {
+      frontmatter[key] = value;
+      continue;
+    }
+
+    const multiline = [];
+    while (index + 1 < lines.length && /^\s+/.test(lines[index + 1])) {
+      index += 1;
+      multiline.push(lines[index].trim());
+    }
+
+    frontmatter[key] = multiline.join(' ').trim();
+  }
+
+  return frontmatter;
+}
+
+function listSkillDirectories(rootPath) {
+  if (!existsSync(rootPath)) {
+    return [];
+  }
+
+  return readdirSync(rootPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(rootPath, entry.name));
+}
+
+function listFilesRecursive(rootPath) {
+  if (!existsSync(rootPath)) {
+    return [];
+  }
+
+  const files = [];
+  for (const entry of readdirSync(rootPath, { withFileTypes: true })) {
+    const entryPath = path.join(rootPath, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listFilesRecursive(entryPath));
+    } else if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}
+
+function getFileHash(filePath) {
+  return createHash('sha256').update(readFileSync(filePath)).digest('hex');
+}
+
+function findPluginSkills() {
+  const userProfile = process.env.USERPROFILE;
+  if (!userProfile) {
+    return { byName: new Map(), hashes: new Map() };
+  }
+
+  const pluginRoot = path.join(userProfile, '.codex', 'plugins', 'cache');
+  const byName = new Map();
+  const hashes = new Map();
+
+  for (const filePath of listFilesRecursive(pluginRoot)) {
+    if (path.basename(filePath) !== 'SKILL.md') {
+      continue;
+    }
+
+    const skillName = path.basename(path.dirname(filePath));
+    byName.set(skillName, filePath);
+    hashes.set(getFileHash(filePath), filePath);
+  }
+
+  return { byName, hashes };
+}
+
+function checkSkillDirectory(skillDir, pluginSkills) {
+  const violations = [];
+  const skillName = path.basename(skillDir);
+  const skillPath = path.join(skillDir, 'SKILL.md');
+
+  if (!existsSync(skillPath)) {
+    return [`[skill-missing-file] Skill ${skillName} is missing SKILL.md.`];
+  }
+
+  const content = readFileSync(skillPath, 'utf8');
+  const frontmatter = readSkillFrontmatter(content);
+  if (!frontmatter) {
+    violations.push(`[skill-frontmatter] Skill ${skillName} must start with YAML frontmatter.`);
+  } else {
+    if (frontmatter.name !== skillName) {
+      violations.push(`[skill-name] Skill ${skillName} frontmatter name must match its directory.`);
+    }
+
+    if (!/^[a-z0-9-]{1,64}$/.test(frontmatter.name ?? '')) {
+      violations.push(`[skill-name-format] Skill ${skillName} name must be lowercase kebab-case and at most 64 chars.`);
+    }
+
+    const description = frontmatter.description ?? '';
+    if (!description || description.length > 1024) {
+      violations.push(`[skill-description] Skill ${skillName} description must be non-empty and <= 1024 chars.`);
+    }
+  }
+
+  const lineCount = content.split(/\r?\n/).length;
+  if (lineCount > MAX_SKILL_MD_LINES) {
+    violations.push(`[skill-length] Skill ${skillName} SKILL.md has ${lineCount} lines; split details into references/.`);
+  }
+
+  for (const { code, pattern, reason } of FORBIDDEN_SKILL_PATTERNS) {
+    if (pattern.test(content)) {
+      violations.push(`[${code}] Skill ${skillName} contains forbidden/outdated content: ${reason}.`);
+    }
+  }
+
+  const pluginSameName = pluginSkills.byName.get(skillName);
+  if (pluginSameName) {
+    violations.push(
+      `[skill-plugin-duplicate] Skill ${skillName} duplicates an installed Codex plugin skill at ${pluginSameName}; keep repo-specific skills only.`,
+    );
+  }
+
+  const localHash = getFileHash(skillPath);
+  const pluginSameHash = pluginSkills.hashes.get(localHash);
+  if (pluginSameHash) {
+    violations.push(`[skill-plugin-copy] Skill ${skillName} is an exact copy of installed plugin skill ${pluginSameHash}.`);
+  }
+
+  if (CRITICAL_SKILLS_WITH_EVALS.has(skillName)) {
+    const evalsPath = path.join(skillDir, 'evals', 'evals.json');
+    if (!existsSync(evalsPath)) {
+      violations.push(`[skill-evals] Critical skill ${skillName} must include evals/evals.json.`);
+    } else {
+      try {
+        JSON.parse(readFileSync(evalsPath, 'utf8'));
+      } catch (error) {
+        violations.push(`[skill-evals] Critical skill ${skillName} evals/evals.json is not valid JSON: ${error.message}`);
+      }
+    }
+  }
+
+  const sizeBytes = listFilesRecursive(skillDir).reduce((total, filePath) => total + statSync(filePath).size, 0);
+  if (sizeBytes > 1024 * 1024) {
+    violations.push(`[skill-size] Skill ${skillName} is larger than 1 MiB; move heavy docs/assets out of .agents/skills.`);
+  }
+
+  return violations;
+}
+
+function checkAgentSkills() {
+  const skillsRoot = path.resolve(WORKSPACE_ROOT, '.agents', 'skills');
+  if (!existsSync(skillsRoot)) {
+    return [];
+  }
+
+  const pluginSkills = findPluginSkills();
+  const violations = [];
+  for (const skillDir of listSkillDirectories(skillsRoot)) {
+    violations.push(...checkSkillDirectory(skillDir, pluginSkills));
+  }
+
+  return violations;
+}
+
 function runSelfTest() {
   const fakeProject = {
     root: '.agents/skills/example',
@@ -292,6 +510,14 @@ function runSelfTest() {
     throw new Error('Self-test failed: explicit Turbopack detection should not treat default-only commands as explicit.');
   }
 
+  const fakeSkill = path.resolve(WORKSPACE_ROOT, '.agents', 'skills', 'delivery-app-foundation-review');
+  if (existsSync(fakeSkill)) {
+    const fakeViolations = checkSkillDirectory(fakeSkill, { byName: new Map(), hashes: new Map() });
+    if (fakeViolations.some((violation) => violation.includes('skill-frontmatter'))) {
+      throw new Error('Self-test failed: delivery-app-foundation-review should have valid frontmatter.');
+    }
+  }
+
   const fakeAdminWebProject = {
     root: 'apps/admin-web',
     targets: {
@@ -317,7 +543,7 @@ function main() {
   }
 
   const projects = getProjects();
-  const violations = [...findNestedLockfiles(), ...findForbiddenFoundationArtifacts()];
+  const violations = [...findNestedLockfiles(), ...findForbiddenFoundationArtifacts(), ...checkAgentSkills()];
 
   for (const name of projects) {
     const project = getProjectDetails(name);

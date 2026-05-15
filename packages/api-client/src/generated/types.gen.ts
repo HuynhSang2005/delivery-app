@@ -4,13 +4,35 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}/api/v1` | (string & {});
 };
 
-export type AppControllerGetHelloData = {
+export type AppControllerGetFoundationStatusData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/';
 };
 
-export type AppControllerGetHelloResponses = {
+export type AppControllerGetFoundationStatusResponses = {
+    200: unknown;
+};
+
+export type HealthControllerLiveData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/health/live';
+};
+
+export type HealthControllerLiveResponses = {
+    200: unknown;
+};
+
+export type HealthControllerReadyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/health/ready';
+};
+
+export type HealthControllerReadyResponses = {
     200: unknown;
 };
