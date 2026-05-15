@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill": "nestjs-backend-runtime",
+  "cases": [
+    {
+      "name": "nestjs-api-runtime",
+      "prompt": "Review a change to apps/api health endpoints and OpenAPI export.",
+      "expected": [
+        "uses apps/api scripts",
+        "checks Nest runtime wiring and Swagger/OpenAPI",
+        "does not use npm/yarn/pnpm workflows"
+      ]
+    }
+  ]
+}

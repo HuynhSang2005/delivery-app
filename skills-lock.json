@@ -76,6 +76,11 @@
       "sourceType": "github",
       "computedHash": "4fd9576e76e89e17d72891fb63e11741bf34c72390058baeb42812e396698525"
     },
+    "monorepo-management": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "4de056e92cfea38bf92ca8217864588e8f32130f57798d2ef72ace27385ea4c7"
+    },
     "native-data-fetching": {
       "source": "expo/skills",
       "sourceType": "github",
@@ -85,6 +90,11 @@
       "source": "vercel-labs/vercel-plugin",
       "sourceType": "github",
       "computedHash": "d868806edb0ff72ea917d70f003e8ca7a984511c9fbce67073de0d04a489452e"
+    },
+    "nx-monorepo": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "computedHash": "1a7d910d6bbb8ba7b7865af7d5082eacb409ed50d415e457067a6e490933783e"
     },
     "openapi-to-application-code": {
       "source": "github/awesome-copilot",

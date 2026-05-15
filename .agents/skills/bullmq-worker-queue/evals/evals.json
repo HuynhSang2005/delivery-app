@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill": "bullmq-worker-queue",
+  "cases": [
+    {
+      "name": "bullmq-boundary",
+      "prompt": "Assess adding a BullMQ worker for delivery notifications.",
+      "expected": [
+        "keeps HTTP/API as authoritative",
+        "requires idempotent job payloads and retries/backoff",
+        "uses Redis as queue infrastructure only"
+      ]
+    }
+  ]
+}

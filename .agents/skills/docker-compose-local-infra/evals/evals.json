@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "skill": "docker-compose-local-infra",
+  "cases": [
+    {
+      "name": "compose-redis-profile",
+      "prompt": "Review Docker Compose changes adding Redis and a debug UI.",
+      "expected": [
+        "requires profile-gated Redis/debug tooling",
+        "checks healthchecks/ports/volumes",
+        "uses docker compose config and db scripts for verification"
+      ]
+    }
+  ]
+}
