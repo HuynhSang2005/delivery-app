@@ -34,6 +34,12 @@ Baseline đã chốt cho `CV-ready MVP-1`. `Local-first` là chuẩn mặc đị
 - CI dùng `nx affected` làm entrypoint mặc định
 - chỉ chạy `e2e` trên các project hoặc flow thật sự bị tác động
 
+### Compose profile governance cho worker-readiness
+
+- `redis` profile: bật Redis runtime khi queue/transient path hoặc worker path thực sự cần
+- `debug` profile: chỉ bật tooling debug (ví dụ Redis Commander), không coi là runtime dependency bắt buộc
+- `jobs` profile: chạy maintenance jobs (ví dụ db-backup), tách khỏi app runtime continuous path
+
 ### 3. Hosted demo
 
 - một VPS Ubuntu + Docker Compose + Caddy
@@ -67,8 +73,8 @@ Baseline đã chốt cho `CV-ready MVP-1`. `Local-first` là chuẩn mặc đị
 
 ### Target quality gates
 
-- `nx affected -t lint typecheck test build`
-- `nx affected -t e2e` khi có thay đổi ảnh hưởng tới flow end-to-end
+- `nx affected -t lint typecheck test build` (base/head lấy từ `NX_BASE` và `NX_HEAD` trong CI)
+- `nx affected -t e2e` (blocking gate) khi có thay đổi ảnh hưởng tới flow end-to-end, cùng base/head context với gate chính
 - `nx run-many -t lint typecheck test --projects api,admin-web,mobile` khi cần chạy thủ công theo nhóm
 - khi repo có project phụ ngoài app scope, dùng `--projects=api,admin-web,mobile` để giữ gate đúng phạm vi delivery runtime
 
@@ -133,6 +139,7 @@ Ownership boundary:
 
 ### Bước 1: Chuẩn bị config
 
+- canonical source cho data-layer local là `docker-compose.yml` tại root repo và root `.env`/`.env.example`
 - tạo file env local cho `api`, `admin-web`, `mobile`
 - điền tối thiểu `DATABASE_URL`, `JWT_SECRET`, `API_BASE_URL`, `ADMIN_BASE_URL`
 - chỉ thêm `REDIS_URL` khi biến thể hiện tại thực sự bật Redis
@@ -160,10 +167,12 @@ Command baseline:
 
 - `bun run db:up`
 - `bun run db:up:redis` khi cần Redis profile
+- `bun run db:up:debug` khi cần bật Redis Commander để debug Redis state
 - `bun run db:migrate`
 - `bun run db:seed`
 - `bun run db:smoke`
 - `bun run db:reset`
+- `bun run job:db-backup` khi cần chạy backup job theo profile
 
 ### Bước 2.5: Migrate và seed deterministic fixtures
 
@@ -220,16 +229,30 @@ Fixture boundary:
 1. checkout repo
 2. cài dependencies
 3. fetch đủ git history để `affected` có base/head đáng tin
-4. xác định rõ base/head SHA trong CI
+4. xác định rõ base/head SHA trong CI bằng `nrwl/nx-set-shas` (hoặc cơ chế tương đương) để set `NX_BASE`/`NX_HEAD`
 5. khởi động service dependencies cần thiết cho test
-6. nếu root `Nx` workspace đã sẵn sàng, chạy `nx affected -t lint typecheck test build`
+6. nếu root `Nx` workspace đã sẵn sàng, chạy `nx affected -t lint typecheck test build --base=$NX_BASE --head=$NX_HEAD`
 7. nếu root `Nx` workspace chưa sẵn sàng, dùng current-state fallback commands và ghi rõ đó là temporary verification path
-8. chạy `nx affected -t e2e` chỉ khi graph/targets đủ tin cậy và thay đổi chạm vào flow trọng yếu
+8. chạy `nx affected -t e2e --base=$NX_BASE --head=$NX_HEAD` như blocking gate khi graph/targets đủ tin cậy; `affected` sẽ tự giới hạn về các flow thực sự bị tác động
+
+Rule:
+
+- `NX_BASE` nên trỏ tới commit thành công gần nhất của `main` để tránh bỏ sót thay đổi trong chuỗi PR/retry.
+- không hardcode `origin/main` làm base duy nhất cho mọi tình huống CI nếu đã có cơ chế lấy last successful SHA.
 
 ### Main branch
 
 - có thể chạy thêm smoke hoặc packaging checks
 - nếu có hosted demo, mới thêm deploy stage
+
+### Foundation Ownership Anchors (R04-T08)
+
+| Runtime gate | Owner task (foundation) | Command path | Risk note |
+| --- | --- | --- | --- |
+| Target-state affected gate | `FDN-R03-T01`, `FDN-R04-T02` | `bun run affected --base=$NX_BASE --head=$NX_HEAD` | dùng base/head không chuẩn làm thiếu phạm vi verify |
+| Blocking e2e gate | `FDN-R04-T02` | `bun run affected:e2e --base=$NX_BASE --head=$NX_HEAD` | non-blocking e2e tạo CI xanh sai nghĩa release readiness |
+| Shared-platform smoke gate | `FDN-R02-T05`, `FDN-R04-T03` | `bun run shared:smoke` | placeholder scripts làm mất fail-fast value |
+| Release smoke gate | `FDN-R03-T05`, `FDN-R04-T06`, `FDN-R04-T07` | `bun run release:smoke` | smoke chỉ có giá trị khi assert runtime wiring thật |
 
 ## Release Flow Đề Xuất
 
@@ -260,6 +283,7 @@ Fixture boundary:
 7. driver accept thành công
 8. order status đổi đúng
 9. admin thấy order ở board và detail
+10. `bun run release:smoke` pass (api/admin/mobile happy + unhappy contracts)
 
 ### Giai đoạn sau
 
@@ -270,6 +294,12 @@ Fixture boundary:
 
 ## Logging Và Quan Sát
 
+### Logging conventions (baseline)
+
+- log format chuẩn là JSON line, có tối thiểu: `ts`, `level`, `event`, `meta`
+- backend request log phải có thêm `requestId`, `method`, `path`, `statusCode`, `durationMs`
+- client logs (admin/mobile) chỉ dùng cho debug có kiểm soát và không được chứa secret
+
 ### Backend
 
 - structured logging
@@ -277,15 +307,31 @@ Fixture boundary:
 - log route hoặc job name
 - không log secret
 
+Wiring baseline hiện tại:
+
+- HTTP request logging + `x-request-id`: `apps/api/src/main.ts`
+- health controllers: `apps/api/src/health.controller.ts`
+
 ### Admin web và mobile
 
 - log client-side chỉ phục vụ debug có kiểm soát
 - lỗi quan trọng nên có tracking riêng khi bật Sentry
 
+Wiring baseline hiện tại:
+
+- admin provider + error listeners: `apps/admin-web/app/observability-provider.tsx`
+- admin logging helpers: `apps/admin-web/lib/observability.ts`
+- mobile logging helpers + global error handler attach: `apps/mobile/utils/observability.ts`
+
 ### Health
 
 - `live` chỉ kiểm tra tiến trình
 - `ready` kiểm tra dependency tối thiểu để phục vụ request
+
+Health-check map (baseline):
+
+- `GET /api/v1/health/live` -> `200 { status: "ok" }`
+- `GET /api/v1/health/ready` -> `200 { status: "ok", checks: { api: true } }`
 
 ## Sao Lưu Và Khôi Phục
 
@@ -296,6 +342,18 @@ Fixture boundary:
 - restore phải đi kèm kiểm tra migration/schema version
 - phải chốt cadence, retention và nơi lưu backup trước khi public demo
 - tối thiểu nên có một restore drill định kỳ trên môi trường tách biệt hoặc local clone
+
+Command baseline cho drill:
+
+- `bun run job:db-backup`
+- `bun run db:restore`
+- `bun run db:drill:backup-restore`
+
+Policy tối thiểu cho `MVP-1` demo path:
+
+- cadence: backup trước mỗi demo quan trọng và ít nhất weekly
+- retention: giữ tối thiểu 7 bản gần nhất cho daily/weekly local drill
+- location: lưu trong backup volume (`db_backups`) và có bản copy off-volume trước khi public demo
 
 ### Redis
 

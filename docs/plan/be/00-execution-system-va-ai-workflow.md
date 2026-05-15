@@ -11,7 +11,7 @@ Hệ thống này tối ưu cho:
 - iteration ít rủi ro
 - verification chặt theo từng task
 
-Tiền đề mặc định: Foundation Plan (path hiện tại: `docs/plan/foudation/`) đã hoàn tất các phase cần thiết để workspace root, local infra, app shells, và quality path dùng chung không còn là blocker cho backend.
+Tiền đề mặc định: Foundation Plan (path hiện tại: `docs/plan/foundation/`) đã hoàn tất các phase cần thiết để workspace root, local infra, app shells, và quality path dùng chung không còn là blocker cho backend.
 
 ## Nguyên Tắc Vận Hành
 
@@ -20,7 +20,7 @@ Tiền đề mặc định: Foundation Plan (path hiện tại: `docs/plan/fouda
 3. Mỗi task phải tạo ra output quan sát được.
 4. Mỗi task phải nêu rõ path nào được phép sửa.
 5. Mỗi task phải mô tả rõ cách verify thành công.
-6. Nếu blocker thuộc foundation layer, phải đẩy về Foundation Plan (path hiện tại: `docs/plan/foudation/`) thay vì âm thầm mở rộng backend phase.
+6. Nếu blocker thuộc foundation layer, phải đẩy về Foundation Plan (path hiện tại: `docs/plan/foundation/`) thay vì âm thầm mở rộng backend phase.
 7. Task có thể sinh thêm follow-up task, nhưng không được tự mở rộng scope âm thầm.
 
 ## Các Lớp Thực Thi

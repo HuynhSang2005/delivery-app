@@ -13,8 +13,15 @@ Baseline đã chốt cho `CV-ready MVP-1`, có mô tả rõ đường nâng cấ
 ### 1. Workspace architecture
 
 - repo là monorepo `Nx`
+- package manager baseline là `bun` workspaces
 - `apps/*` là deployable runtimes
 - `packages/*` là reusable code
+
+Workspace governance baseline:
+
+- target naming canonical: `lint`, `typecheck`, `test`, `build`, `e2e`, `smoke`
+- `nx affected -t ...` là đường verify `target-state`
+- tags/module boundaries phải có từ sớm để tránh phụ thuộc chéo ngoài ý muốn
 
 ### 2. Runtime architecture
 

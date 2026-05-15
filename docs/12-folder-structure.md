@@ -10,7 +10,7 @@ Baseline đã chốt cho `CV-ready MVP-1`, có chừa chỗ cho `worker`, `tools
 
 ## Quyết Định Cốt Lõi
 
-- monorepo dùng package-manager workspace + `Nx`
+- monorepo dùng `bun` workspaces + `Nx`
 - `apps/` chứa deployable runtimes
 - `packages/` chứa code dùng chung thật sự
 - `tools/` chứa generator, conformance helper hoặc workspace-specific tooling khi cần
@@ -33,9 +33,9 @@ Không giả định `Nx Cloud` ở `MVP-1`.
 
 ```text
 package.json
+bun.lock
 nx.json
 tsconfig.base.json
-<workspace-manifest của package manager>
 apps/
 packages/
 tools/
@@ -45,7 +45,8 @@ docs/
 
 Ghi chú:
 
-- `workspace-manifest` phụ thuộc package manager được chọn lúc scaffold
+- `package.json` là workspace manifest (`workspaces`) cho `bun`
+- `bun.lock` là lockfile chuẩn cho dependency graph của workspace
 - `nx.json` là nơi chốt `targetDefaults`, `namedInputs`, plugins và cache policy
 - `tsconfig.base.json` là nguồn alias và TS path dùng chung cho workspace
 
@@ -97,6 +98,23 @@ Khuyến nghị:
 - `shared-kernel`
 
 Không cần prefix quá dài nếu repo không có hàng chục app cùng loại.
+
+## Ownership Registry Baseline
+
+| Scope | Ownership baseline | Ghi chú |
+| --- | --- | --- |
+| `apps/api` | backend team-path (`docs/plan/be/*`) | sở hữu domain logic, API contracts, Prisma assets |
+| `apps/admin-web` | admin-web app plan | công cụ vận hành, không sở hữu business invariants |
+| `apps/mobile` | mobile app plan | client UX cho user/driver, không phải source of truth |
+| `packages/api-client` | contracts + tooling ownership | canonical generated HTTP client cho admin/mobile; không chỉnh tay generated artifacts |
+| `packages/shared-kernel` | shared-platform ownership | types/constants dùng chung, không chứa app runtime-specific logic |
+| `infra/` | infra plan + runbook | topology, compose, deploy, backup/restore |
+| `tools/` | tooling ownership | generators, conformance helpers, codegen utilities (`tools/workspace-conformance`) |
+
+Rule:
+
+- khi conflict ownership, ưu tiên source docs + AGENTS authority model
+- không chuyển ownership chỉ vì scaffold tiện tay; phải có update docs tương ứng
 
 ## Hệ Tags Bắt Buộc
 
@@ -358,6 +376,12 @@ apps/mobile/
 - store toàn cục chỉ dùng cho session, mode switch và UI state; không thay React Query cho server state
 
 ## `apps/worker`
+
+Worker-readiness boundary:
+
+- chỉ bật `apps/worker` khi async runtime cần tách riêng khỏi `apps/api`
+- profile `redis` là dependency runtime khi worker path được bật
+- profile `debug` và `jobs` không thay thế runtime boundary giữa `api` và `worker`
 
 ### Mục đích
 

@@ -433,6 +433,17 @@ Hệ quả:
 - foreground presence đủ cho phần lớn demo flow đầu tiên
 - nếu phase sau bật background tracking, docs phải ghi rõ dev build, permission flow và degradation rules
 
+## Coverage Anchor Cho ADR-021..026 (R04-T08)
+
+| ADR | Owner task (foundation) | Verification path | Risk note | Defer trigger hoặc non-goal |
+| --- | --- | --- | --- | --- |
+| `ADR-021` (`Nx` monorepo core) | `FDN-R04-T02`, `FDN-R04-T03`, `FDN-R04-T08` | `bun run affected --base=$NX_BASE --head=$NX_HEAD`, `bun run affected:e2e --base=$NX_BASE --head=$NX_HEAD`, `nx graph` | nếu base/head sai, `affected` có thể bỏ sót regression | `Nx Cloud` vẫn defer cho tới khi có nhu cầu scale CI rõ ràng |
+| `ADR-022` (HTTP-authoritative realtime) | `FDN-R03-T03`, `FDN-R03-T05`, `FDN-R04-T06` | `bun run release:smoke` + realtime checks bám HTTP reconciliation theo `docs/10` | false confidence nếu chỉ assert event mà không assert final HTTP state | không có defer cho invariant này |
+| `ADR-023` (Nx target contracts) | `FDN-R03-T01`, `FDN-R04-T03`, `FDN-R04-T08` | `bun run affected`, `bun run affected:e2e`, `bun run workspace:conformance`, `bun run shared:smoke` | placeholder scripts hoặc target drift tạo false-green | không bypass target contracts cho runtime tasks |
+| `ADR-024` (Firebase proofing only) | `FDN-R04-T08` (docs governance), backend phases kế tiếp | docs verification trong `docs/01`, `docs/08`, `docs/14`; runtime auth baseline theo `dev login` | dễ nhầm Firebase OTP là auth source chính | chỉ bật khi flow `Firebase proof -> backend session` được chốt trong phase sau |
+| `ADR-025` (radius + KNN + freshness) | `FDN-R02-T04`, `FDN-R04-T08` | docs/runtime alignment trong `docs/02`, `docs/03`, `docs/14` + dispatch tests theo `docs/10` | over-claim route-aware ranking làm sai phạm vi MVP-1 | route-aware ranking defer đến khi product chấp nhận cost/ops tăng |
+| `ADR-026` (conditional background location) | `FDN-R04-T08` + mobile phases sau | mobile runtime checks + policy alignment `docs/05`, `docs/10`, `docs/14` | overstate capability background gây mismatch giữa docs và runtime | chỉ kích hoạt khi driver duty/active-order policy và permission flow đã được phê duyệt |
+
 ## Kết Luận
 
 ADR là lớp quyết định gốc của repo. Nếu một docs khác mâu thuẫn với ADR, ADR là nơi phải được kiểm tra trước để xác định baseline nào còn hiệu lực.

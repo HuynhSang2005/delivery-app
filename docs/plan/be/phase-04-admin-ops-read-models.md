@@ -6,25 +6,41 @@
 
 Hỗ trợ workflow vận hành của admin bằng read models và investigation-oriented endpoints rõ ràng.
 
-## Phụ Thuộc
+## In Scope
+
+- chốt order board query model cho admin
+- implement order detail investigation API
+- giữ scope-control cho admin mutations ngoài baseline MVP-1
+
+## Dependencies
 
 - `BE-P02-T05`
 - `BE-P03-T04`
 - `BE-P03-T05`
 - `BE-P03-T06`
 
-## Ngoài Phạm Vi
+## Out Of Scope
 
 - driver onboarding review
 - chat
 - worker extraction
 
-## Điều Kiện Đạt Phase
+## Acceptance Gate
 
-Admin có thể xem order health, dispatch history, và operational details thông qua read models ổn định mà không phải phụ thuộc vào raw database browsing.
+- [ ] admin board/detail reads phục vụ triage và investigation ổn định
+- [ ] capability policy cho admin access rõ và testable
+- [ ] mutation scope vẫn được khóa đúng baseline `MVP-1`
+
+## Task Index
+
+| ID | Type | Verification mode | Depends on | Output |
+|---|---|---|---|---|
+| `BE-P04-T01` | `read-model` | `runtime` | `BE-P02-T05`, `BE-P03-T04` | Admin order board query model |
+| `BE-P04-T02` | `api` | `runtime` | `BE-P04-T01`, `BE-P03-T04`, `BE-P03-T05` | Admin order detail investigation API |
+| `BE-P04-T03` | `scope-control` | `docs-only` | `BE-P04-T02` | Scope lock cho admin mutations ngoài MVP-1 |
 
 <!-- mark-task: BE-P04-T01 -->
-## BE-P04-T01 Chốt admin order board query model
+### BE-P04-T01 Chốt admin order board query model
 
 - Type: `read-model`
 - Verification mode: `runtime`
@@ -38,7 +54,7 @@ Admin có thể xem order health, dispatch history, và operational details thô
 - Definition of done: admin-web phase có thể dùng admin board contract hiện tại mà không phải phát minh fields hoặc query semantics mới
 
 <!-- mark-task: BE-P04-T02 -->
-## BE-P04-T02 Implement admin order detail investigation API
+### BE-P04-T02 Implement admin order detail investigation API
 
 - Type: `api`
 - Verification mode: `runtime`
@@ -52,7 +68,7 @@ Admin có thể xem order health, dispatch history, và operational details thô
 - Definition of done: ops investigation flow có thể hoàn thành qua API read models mà không cần DB shell truy vấn ad hoc
 
 <!-- mark-task: BE-P04-T03 -->
-## BE-P04-T03 Giữ admin operational actions ngoài baseline `MVP-1` cho đến khi docs gốc chấp thuận
+### BE-P04-T03 Giữ admin operational actions ngoài baseline `MVP-1` cho đến khi docs gốc chấp thuận
 
 - Type: `scope-control`
 - Verification mode: `docs-only`

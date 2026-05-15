@@ -6,7 +6,16 @@
 
 Implement dispatch baseline đầu tiên chạy được: driver presence ingestion, candidate search, offer flow, accept flow, và assistive realtime updates.
 
-## Phụ Thuộc
+## In Scope
+
+- chốt presence schema và freshness policy
+- implement presence ingest API
+- implement candidate query theo radius + freshness + KNN
+- implement offer lifecycle persistence
+- implement accept flow conflict-safe + reconciliation path
+- implement assistive realtime events
+
+## Dependencies
 
 - `BE-P01-T06`
 - `BE-P02-T04`
@@ -15,18 +24,31 @@ Implement dispatch baseline đầu tiên chạy được: driver presence ingest
 - `BE-P00-T04`
 - `BE-P00-T05`
 
-## Ngoài Phạm Vi
+## Out Of Scope
 
 - route-aware shortest-path ranking với provider trả phí
 - background tracking always-on policy
 - worker extraction
 
-## Điều Kiện Đạt Phase
+## Acceptance Gate
 
-Hệ thống ingest được driver presence hợp lệ, chọn candidate theo baseline đã chốt, gửi offer cho driver, persist được conflict-safe dispatch outcomes, và phát realtime event hỗ trợ UX.
+- [ ] presence ingest và candidate selection chạy theo baseline đã chốt
+- [ ] offer/accept lifecycle được persist với conflict safety rõ ràng
+- [ ] realtime events giữ vai trò assistive và có HTTP reconciliation path
+
+## Task Index
+
+| ID | Type | Verification mode | Depends on | Output |
+|---|---|---|---|---|
+| `BE-P03-T01` | `schema` | `runtime` | `BE-P01-T06`, `BE-P00-T03` | Presence schema + freshness policy |
+| `BE-P03-T02` | `api` | `runtime` | `BE-P03-T01`, `BE-P01-T04` | Driver presence ingest API |
+| `BE-P03-T03` | `application` | `runtime` | `BE-P03-T01`, `BE-P02-T04` | Candidate query by radius/freshness/KNN |
+| `BE-P03-T04` | `application` | `runtime` | `BE-P03-T03`, `BE-P02-T03` | Dispatch attempt + offer lifecycle persistence |
+| `BE-P03-T05` | `api` | `runtime` | `BE-P03-T04`, `BE-P01-T04` | Accept flow conflict safety + reconciliation |
+| `BE-P03-T06` | `realtime` | `runtime` | `BE-P03-T02`, `BE-P03-T05`, `BE-P00-T04` | Assistive websocket events + HTTP reconciliation |
 
 <!-- mark-task: BE-P03-T01 -->
-## BE-P03-T01 Chốt driver presence schema và freshness policy
+### BE-P03-T01 Chốt driver presence schema và freshness policy
 
 - Type: `schema`
 - Verification mode: `runtime`
@@ -40,7 +62,7 @@ Hệ thống ingest được driver presence hợp lệ, chọn candidate theo b
 - Definition of done: BE-P03-T02/T03 có thể dùng presence persistence surface hiện tại mà không cần bổ sung schema nền
 
 <!-- mark-task: BE-P03-T02 -->
-## BE-P03-T02 Implement driver presence ingest API
+### BE-P03-T02 Implement driver presence ingest API
 
 - Type: `api`
 - Verification mode: `runtime`
@@ -54,7 +76,7 @@ Hệ thống ingest được driver presence hợp lệ, chọn candidate theo b
 - Definition of done: mobile phases dùng được presence API contract hiện tại cho availability/tracking mà không thêm endpoint phụ
 
 <!-- mark-task: BE-P03-T03 -->
-## BE-P03-T03 Implement candidate driver query bằng radius, freshness, và KNN
+### BE-P03-T03 Implement candidate driver query bằng radius, freshness, và KNN
 
 - Type: `application`
 - Verification mode: `runtime`
@@ -68,7 +90,7 @@ Hệ thống ingest được driver presence hợp lệ, chọn candidate theo b
 - Definition of done: dispatch candidate selection hoạt động theo baseline hiện tại mà không phụ thuộc route provider phase sau
 
 <!-- mark-task: BE-P03-T04 -->
-## BE-P03-T04 Implement dispatch attempt và offer lifecycle persistence
+### BE-P03-T04 Implement dispatch attempt và offer lifecycle persistence
 
 - Type: `application`
 - Verification mode: `runtime`
@@ -82,7 +104,7 @@ Hệ thống ingest được driver presence hợp lệ, chọn candidate theo b
 - Definition of done: admin/ops read models có thể dựa vào dispatch persistence state mà không cần log parsing ad-hoc
 
 <!-- mark-task: BE-P03-T05 -->
-## BE-P03-T05 Implement driver offer accept flow có conflict safety và HTTP reconciliation path rõ
+### BE-P03-T05 Implement driver offer accept flow có conflict safety và HTTP reconciliation path rõ
 
 - Type: `api`
 - Verification mode: `runtime`
@@ -96,7 +118,7 @@ Hệ thống ingest được driver presence hợp lệ, chọn candidate theo b
 - Definition of done: order assignment semantics ổn định để các phase vận hành và admin reads dùng trực tiếp
 
 <!-- mark-task: BE-P03-T06 -->
-## BE-P03-T06 Implement assistive websocket events với HTTP reconciliation
+### BE-P03-T06 Implement assistive websocket events với HTTP reconciliation
 
 - Type: `realtime`
 - Verification mode: `runtime`

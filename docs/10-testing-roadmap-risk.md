@@ -59,6 +59,7 @@ Diễn giải:
 
 - PR mặc định chạy `nx affected -t lint typecheck test build`
 - thay đổi chạm vào flow quan trọng thì chạy thêm `nx affected -t e2e`
+- shared-platform runtime checks chạy thêm `bun run shared:smoke` để verify contract sync + conformance helpers
 - hosted demo thì có thêm `smoke`
 - pre-commit bắt buộc chạy `lint-staged` với `nx affected -t lint typecheck test --files` trên staged files
 
@@ -78,6 +79,78 @@ Diễn giải:
 | `apps/mobile` | component + integration tests | có | UX flow, navigation, mode gating, reconnect behavior |
 | `packages/api-client` | generation/contract checks | không bắt buộc | contract sync |
 | `packages/shared-kernel` | unit tests | không | shared invariants |
+
+## Testing Architecture Chuẩn Hóa (apps/*)
+
+Mục tiêu: giữ một pattern thống nhất để scale test mà không tạo drift giữa app teams.
+
+### Folder structure chuẩn
+
+- `apps/admin-web/tests/unit`
+- `apps/admin-web/tests/integration`
+- `apps/admin-web/tests/e2e`
+- `apps/api/tests/unit`
+- `apps/api/tests/integration`
+- `apps/api/tests/e2e`
+- `apps/mobile/tests/unit`
+- `apps/mobile/tests/integration`
+- `apps/mobile/tests/e2e`
+
+### Naming pattern chuẩn
+
+- unit:
+	- web/mobile: `*.unit.test.ts`
+	- api: `*.unit.spec.ts`
+- integration:
+	- web/mobile: `*.integration.test.ts`
+	- api: `*.integration.spec.ts`
+- e2e:
+	- web/mobile: `*.e2e.test.ts`
+	- api: `*.e2e.spec.ts`
+
+Rule:
+
+- không trộn unit/integration/e2e trong cùng một glob script
+- mỗi layer test phải có script riêng: `test:unit`, `test:integration`, `test:e2e`
+- `test` là orchestration script chạy `test:unit -> test:integration`
+
+### Script contract chuẩn
+
+- admin-web:
+	- `test:unit` -> Bun test glob `tests/unit/**/*.unit.test.ts`
+	- `test:integration` -> Bun test glob `tests/integration/**/*.integration.test.ts`
+	- `e2e:preflight` -> build production + Bun smoke `tests/e2e/runtime-smoke.e2e.test.ts`
+	- `test:e2e` -> `e2e:preflight` + Playwright browser flow
+- api:
+	- `test:unit` -> Jest config `jest.unit.json`
+	- `test:integration` -> Jest config `jest.integration.json`
+	- `test:e2e` -> Jest config `jest.e2e.json`
+- mobile:
+	- `test:unit` -> Jest + `jest-expo` + React Native Testing Library
+	- `test:integration` -> Jest + `jest-expo` + screen-level integration assertions
+	- `e2e:preflight` -> web export build + Bun smoke glob `tests/e2e/**/*.e2e.test.ts`
+	- `test:e2e` -> preflight baseline; device-level flow (Maestro/Detox) bật theo phase
+
+### Principles of Software Testing (áp dụng bắt buộc)
+
+- risk-based: ưu tiên test cho flow có business impact/race/reconnect cao
+- fast feedback: unit/integration phải chạy nhanh và deterministic trước e2e
+- isolation first: mỗi test phải tự setup/teardown, không phụ thuộc thứ tự chạy
+- evidence over claims: mọi báo cáo pass phải có command output tương ứng
+- contract-first: test failure ở contract path phải block merge như runtime regression
+- maintainability: test tên rõ intent, bám behavior thay vì implementation details
+
+### Testing libs baseline (theo current repo contract)
+
+- API: `jest@30`, `ts-jest`, `@nestjs/testing`, `supertest`
+- Admin web: Bun test runner (`bun:test`) cho unit/integration + preflight smoke; Playwright cho browser e2e thật
+- Mobile: `jest`, `jest-expo`, `@testing-library/react-native` cho unit/integration; Bun smoke giữ vai trò preflight nhanh
+
+Ghi chú về modern patterns:
+
+- NestJS official docs: khuyến nghị tách rõ unit và e2e; e2e dùng app runtime + Supertest
+- Next.js official docs: khuyến nghị tách unit/integration và e2e frameworks theo mục tiêu test
+- Expo official docs: ưu tiên unit/integration cho screen logic, e2e cho flow thật có chi phí cao
 
 ## Bộ Tiêu Chí “Hoàn Thành” Cho Mỗi Feature
 
@@ -298,6 +371,37 @@ Bắt buộc thêm:
 - regenerate client
 - verify operation ids
 - review breaking changes
+
+## Release Smoke Contracts (R03 baseline)
+
+Command baseline:
+
+- `bun run release:smoke`
+
+Contract matrix tối thiểu:
+
+- backend (`apps/api`): happy-path `GET /api/v1/health/live` trả `200`, unhappy-path `GET /api/v1/health/not-found` trả `404`, kèm request log có `requestId`
+- admin (`apps/admin-web`): happy-path log event `admin_release_smoke_happy`, unhappy-path log event `admin_release_smoke_unhappy`
+- mobile (`apps/mobile`): happy-path log event `mobile_release_smoke_happy`, unhappy-path trigger global error handler và ghi `mobile_global_error`
+
+Rule:
+
+- smoke contracts là release gate runtime tối thiểu, không thay thế e2e theo feature flows
+- khi smoke fail, không claim release-ready cho phase hiện tại
+
+## Foundation Verification Ownership Anchors (R04-T08)
+
+| Verification concern | Owner task (foundation) | Baseline command path | Risk note |
+| --- | --- | --- | --- |
+| Target-state quality gate | `FDN-R03-T01`, `FDN-R04-T02` | `bun run affected --base=$NX_BASE --head=$NX_HEAD` | sai base/head làm gate bỏ sót project bị ảnh hưởng |
+| Blocking e2e gate | `FDN-R04-T02` | `bun run affected:e2e --base=$NX_BASE --head=$NX_HEAD` | e2e non-blocking gây CI xanh sai nghĩa |
+| Shared platform smoke | `FDN-R02-T05`, `FDN-R04-T03` | `bun run shared:smoke` | placeholder checks làm giảm giá trị fail-fast |
+| Release smoke contracts | `FDN-R03-T05`, `FDN-R04-T06`, `FDN-R04-T07` | `bun run release:smoke` | smoke mất ý nghĩa nếu không assert runtime wiring thật |
+| Data drill continuity | `FDN-R03-T02`, `FDN-R04-T08` | `bun run db:drill:backup-restore` | backup/restore chỉ tồn tại trên docs mà không có evidence runtime |
+
+Rule:
+
+- mọi dòng trong bảng này phải map được vào task owner và command thực thi; nếu thiếu một trong hai thì coi là orphan gap.
 
 ## Rủi Ro Chính
 

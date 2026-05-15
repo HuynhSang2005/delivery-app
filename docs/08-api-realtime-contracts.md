@@ -13,7 +13,26 @@ Baseline đã chốt cho `CV-ready MVP-1`, có đánh dấu rõ endpoint và eve
 - `NestJS-first`: controller và DTO là lớp hiện thực nguồn
 - `OpenAPI-first`: Swagger/OpenAPI là artifact contract chính thức
 - `generated-client-first`: mobile và admin dùng generated client thay vì tự viết SDK rời
+- `single-contract-workflow`: backend publish một OpenAPI canonical, client artifacts được generate tập trung và dùng chung qua `packages/api-client`
 - `HTTP-authoritative realtime`: socket event hỗ trợ UX, HTTP/API vẫn là nơi reconcile final state
+
+Canonical contract workflow commands:
+
+- `bun run contract:export`: export OpenAPI từ `apps/api` vào `packages/api-client/openapi/openapi.json`
+- `bun run contract:generate`: generate client artifacts vào `packages/api-client/src/generated`
+- `bun run contract:sync`: chạy liên tiếp `contract:export -> contract:generate` để giữ contract và client đồng bộ
+
+Policy cho `@hey-api/openapi-ts` plugins (FDN-R04-T04):
+
+- baseline `adopt now`: `@hey-api/client-fetch`
+- `pilot`: plugin `@tanstack/react-query`, plugin validators (`zod`) theo flow có kiểm soát
+- `defer`: `@hey-api/client-next`, plugin `@hey-api/nestjs` (beta), `~resolvers`
+
+Ràng buộc workflow:
+
+- chỉ có một canonical generated client path ở `packages/api-client`
+- không tạo app-specific SDK divergence cho `admin-web` và `mobile`
+- mọi plugin chuyển trạng thái từ `pilot/defer` sang `adopt` phải cập nhật decision matrix trong `docs/14-tech-stack-catalog.md`
 
 ## Quy Ước Chung
 

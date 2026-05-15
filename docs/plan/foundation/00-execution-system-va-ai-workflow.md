@@ -43,6 +43,12 @@ Khi lên plan hoặc implement foundation, dùng cách chia lớp này:
 - trộn Docker infra, Prisma schema, và admin UI vào cùng một task
 - không nói rõ verify bằng current-state hay target-state
 
+### Quy Tắc Riêng Cho Data Bootstrap Tasks
+
+- phải nêu rõ trình tự `migrate -> seed-baseline -> reset`
+- phải tách baseline fixtures và domain fixtures
+- không để app-specific phases tự phát minh reset semantics riêng
+
 ## Quy Tắc Escalation
 
 Dừng implement và update docs trước nếu xảy ra một trong các trường hợp:

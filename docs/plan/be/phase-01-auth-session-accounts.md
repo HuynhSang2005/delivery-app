@@ -6,25 +6,47 @@
 
 Implement baseline auth và identity chuẩn của backend: accounts, capabilities, sessions, và các primitive identity cho driver.
 
-## Phụ Thuộc
+## In Scope
+
+- chốt auth/account schema baseline
+- implement dev-login + session issuance
+- implement refresh/logout/auth-me lifecycle
+- implement capability guard + admin guard
+- chốt OTP proofing boundary không thay canonical session
+- implement đọc/cập nhật driver identity baseline
+
+## Dependencies
 
 - `BE-P00-T01`
 - `BE-P00-T03`
 - `BE-P00-T04`
 - `BE-P00-T05`
 
-## Ngoài Phạm Vi
+## Out Of Scope
 
 - route-aware dispatch ranking
 - chat
 - worker extraction
 
-## Điều Kiện Đạt Phase
+## Acceptance Gate
 
-Session lifecycle cho authenticated user chạy end-to-end và identity semantics đủ ổn định cho order cùng dispatch ở các phase sau.
+- [ ] session lifecycle chạy end-to-end với backend-owned session semantics
+- [ ] capability model vận hành nhất quán cho user/driver/admin
+- [ ] identity surface đủ ổn định để phase order/dispatch kế thừa
+
+## Task Index
+
+| ID | Type | Verification mode | Depends on | Output |
+|---|---|---|---|---|
+| `BE-P01-T01` | `schema` | `runtime` | `BE-P00-T03` | Auth/account/capability/session schema baseline |
+| `BE-P01-T02` | `api` | `runtime` | `BE-P01-T01`, `BE-P00-T04` | Dev-login + session issuance flow |
+| `BE-P01-T03` | `api` | `runtime` | `BE-P01-T02` | Refresh/logout/auth-me endpoints |
+| `BE-P01-T04` | `application` | `runtime` | `BE-P01-T01`, `BE-P01-T03` | Capability guard + admin authorization guards |
+| `BE-P01-T05` | `foundation` | `target-state` | `BE-P01-T03` | OTP proofing boundary contract |
+| `BE-P01-T06` | `api` | `runtime` | `BE-P01-T01`, `BE-P01-T04` | Driver identity read/update baseline |
 
 <!-- mark-task: BE-P01-T01 -->
-## BE-P01-T01 Chốt auth và account schema baseline
+### BE-P01-T01 Chốt auth và account schema baseline
 
 - Type: `schema`
 - Verification mode: `runtime`
@@ -38,7 +60,7 @@ Session lifecycle cho authenticated user chạy end-to-end và identity semantic
 - Definition of done: BE-P01-T02/T03/T04 có thể dùng schema hiện tại cho `/auth/me`, capability checks và refresh/logout flows mà không cần đổi schema
 
 <!-- mark-task: BE-P01-T02 -->
-## BE-P01-T02 Implement dev-login và session issuance flow
+### BE-P01-T02 Implement dev-login và session issuance flow
 
 - Type: `api`
 - Verification mode: `runtime`
@@ -52,7 +74,7 @@ Session lifecycle cho authenticated user chạy end-to-end và identity semantic
 - Definition of done: seeded account có thể hoàn tất dev-login flow theo contract đã chốt và dùng session cho bước verify kế tiếp
 
 <!-- mark-task: BE-P01-T03 -->
-## BE-P01-T03 Implement refresh, logout, và auth-me truth endpoints
+### BE-P01-T03 Implement refresh, logout, và auth-me truth endpoints
 
 - Type: `api`
 - Verification mode: `runtime`
@@ -66,7 +88,7 @@ Session lifecycle cho authenticated user chạy end-to-end và identity semantic
 - Definition of done: BE-P02+ authenticated flows có thể dựa vào session lifecycle hiện tại mà không phải mở lại auth foundation
 
 <!-- mark-task: BE-P01-T04 -->
-## BE-P01-T04 Implement capability guard và admin authorization guards
+### BE-P01-T04 Implement capability guard và admin authorization guards
 
 - Type: `application`
 - Verification mode: `runtime`
@@ -80,7 +102,7 @@ Session lifecycle cho authenticated user chạy end-to-end và identity semantic
 - Definition of done: downstream modules dùng được capability guard contract hiện tại mà không cần custom authorization workaround
 
 <!-- mark-task: BE-P01-T05 -->
-## BE-P01-T05 Chốt boundary cho OTP proofing mà không thay canonical session
+### BE-P01-T05 Chốt boundary cho OTP proofing mà không thay canonical session
 
 - Type: `foundation`
 - Verification mode: `target-state`
@@ -94,7 +116,7 @@ Session lifecycle cho authenticated user chạy end-to-end và identity semantic
 - Definition of done: OTP work phase sau có thể tích hợp thêm mà vẫn giữ nguyên session/source-of-truth semantics của backend
 
 <!-- mark-task: BE-P01-T06 -->
-## BE-P01-T06 Implement baseline đọc và cập nhật driver identity
+### BE-P01-T06 Implement baseline đọc và cập nhật driver identity
 
 - Type: `api`
 - Verification mode: `runtime`

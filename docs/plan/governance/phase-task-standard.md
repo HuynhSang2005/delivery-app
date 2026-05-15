@@ -1,6 +1,6 @@
 # Phase-Task Standard
 
-Tài liệu này chuẩn hóa cách viết phase/task cho `docs/plan/foudation/` và `docs/plan/be/`.
+Tài liệu này chuẩn hóa cách viết phase/task cho `docs/plan/foundation/` và `docs/plan/be/`.
 
 ## 1) Nguyên Tắc Phân Rã Công Việc
 

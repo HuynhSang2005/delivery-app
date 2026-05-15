@@ -1,11 +1,9 @@
-﻿# Docs Plan Index
+# Docs Plan Index
 
-`docs/plan/` là execution planning layer của project.
+`docs/plan/` is the execution planning layer for the repository.
 
-Mục tiêu:
-- biến source docs thành backlog/task có thể claim-verify-close
-- giữ planning layer và execution tracking layer tách rõ
-- giảm scope drift khi làm việc với AI-agent
+It exists to turn source docs into claimable, verifiable work while keeping
+planning separate from issue lifecycle state.
 
 ## Reading Order
 
@@ -13,21 +11,24 @@ Mục tiêu:
 2. `docs/plan/ai-agent-workflow-playbook.md`
 3. `docs/plan/governance/phase-task-standard.md`
 4. `docs/plan/governance/execution-checklist.md`
-5. `docs/plan/foudation/README.md`
+5. `docs/plan/foundation/README.md`
 6. `docs/plan/be/README.md`
 
 ## Folder Roles
 
-- `docs/plan/foudation/`: setup nền dùng chung (workspace, infra contract, baseline verification)
-- `docs/plan/be/`: backend execution sau foundation
-- `docs/plan/governance/`: chuẩn hóa task sizing, metadata, close-evidence
+- `docs/plan/foundation/`: repo foundation work such as workspace setup,
+  local infra, shared contracts, CI, Docker, and baseline verification.
+- `docs/plan/be/`: backend execution after foundation is ready.
+- `docs/plan/governance/`: task sizing, metadata, verification, and
+  close-evidence standards.
+- `docs/plan/archive/`: historical planning artifacts only; archived docs must
+  not define active workflow.
 
-## Hybrid Contract
+## Planning Contract
 
-- Spec-Kit: planning artifacts (`constitution/spec/plan/tasks`)
-- Beads: issue lifecycle (`ready/claim/close` + evidence)
-
-Rule bắt buộc:
-- docs gốc (`docs/00..14`, ADR) là source of truth
-- Beads không thay source docs
-- task không có evidence thì không được close
+- Source docs (`docs/00..14`, `docs/references.md`, and ADRs) are the source
+  of truth.
+- `docs/plan/` decomposes approved source-doc scope into execution plans.
+- Beads tracks issue lifecycle (`ready`, `claim`, `close`) and evidence only.
+- Beads does not replace source docs or execution plans.
+- A task without matching evidence must not be closed.
